@@ -22,37 +22,29 @@ It distinguishes meaningful challenge from incidental toil. It is not anti-AI, a
 
 ## 🎬 See Joy in action
 
-### Claude Code
+<details open>
+<summary><strong>Claude Code</strong> — <code>pair</code> mode</summary>
+
+<br>
 
 <p align="center">
 	<img src="assets/claude.gif" alt="Claude Code running Joy in pair mode and dividing a slugify task into Keep, Pair, and Delegate work" width="900">
 </p>
 
-### GitHub Copilot CLI
+</details>
+
+<details open>
+<summary><strong>GitHub Copilot CLI</strong> — <code>learn</code> mode</summary>
+
+<br>
 
 <p align="center">
 	<img src="assets/copilot.gif" alt="GitHub Copilot CLI running Joy in learn mode while preserving diagnosis of a binary-search bug" width="900">
 </p>
 
+</details>
+
 **Note:** These recordings run the local plugin in interactive CLI sessions. They are generated from [assets/claude.tape](assets/claude.tape) and [assets/copilot.tape](assets/copilot.tape) with [VHS](https://github.com/charmbracelet/vhs); wording may vary when they are re-recorded.
-
-## ✨ A short example
-
-**🧑‍💻 You:** Build a Markdown parser for this project.
-
-**🌿 Joy:** Which part should remain yours: the parser design, its implementation, or neither?
-
-**🧑‍💻 You:** I want to design it. Handle the mechanical work.
-
-**🌿 Joy:**
-
-> 🧭 **Keep:** grammar, parsing strategy, and data model  
-> 🤝 **Pair:** edge cases and trade-offs  
-> ⚙️ **Delegate:** scaffolding, fixtures, and test plumbing
->
-> Describe your strategy when ready. I will work around it rather than designing it for you.
-
-For a rename, typo, or clearly delegated task, Joy skips this ceremony and proceeds.
 
 ## 📦 Install
 

@@ -212,6 +212,9 @@ check(!/(?:--allow-all|--yolo)\b/.test(copilotTape), "assets/copilot.tape must n
 check(readme.includes('src="assets/claude.gif"'), "README.md must display the Claude Code demo");
 check(readme.includes('src="assets/copilot.gif"'), "README.md must display the Copilot CLI demo");
 check(readme.includes("(assets/copilot.tape)"), "README.md must link the Copilot CLI tape");
+check(readme.includes("<details open>"), "README.md must open the primary demo by default");
+check(readme.includes("<summary><strong>Claude Code</strong>"), "README.md must label the Claude Code demo panel");
+check(readme.includes("<summary><strong>GitHub Copilot CLI</strong>"), "README.md must label the Copilot CLI demo panel");
 
 const evaluations = readJson(evalPath);
 if (evaluations) {
