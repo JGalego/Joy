@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { dirname, extname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -10,6 +10,7 @@ const readmePath = join(root, "README.md");
 const evalPath = join(root, "skills", "joy", "evals", "evals.json");
 const pluginPath = join(root, ".claude-plugin", "plugin.json");
 const marketplacePath = join(root, ".claude-plugin", "marketplace.json");
+const justfilePath = join(root, "justfile");
 const errors = [];
 
 function check(condition, message) {
@@ -22,6 +23,15 @@ function read(path) {
   } catch (error) {
     errors.push(`${relative(root, path)}: ${error.message}`);
     return "";
+  }
+}
+
+function readBytes(path) {
+  try {
+    return readFileSync(path);
+  } catch (error) {
+    errors.push(`${relative(root, path)}: ${error.message}`);
+    return Buffer.alloc(0);
   }
 }
 
@@ -69,6 +79,11 @@ const requiredFiles = [
   "skills/joy/SKILL.md",
   "skills/joy/evals/evals.json",
   "assets/joy.svg",
+  "assets/claude.gif",
+  "assets/copilot.gif",
+  "assets/claude.tape",
+  "assets/copilot.tape",
+  "justfile",
   "scripts/validate.mjs"
 ];
 for (const path of requiredFiles) {
@@ -82,6 +97,7 @@ check(skillFiles[0] === skillPath, "canonical skill must be skills/joy/SKILL.md"
 
 const skill = read(skillPath);
 const readme = read(readmePath);
+const justfile = read(justfilePath);
 const { fields, body } = parseFrontmatter(skill);
 const allowedFrontmatter = new Set([
   "name",
@@ -134,6 +150,11 @@ check(readme.includes("/plugin marketplace add JGalego/Joy"), "README.md must do
 check(readme.includes("/plugin install joy@joy"), "README.md must document plugin installation");
 check(readme.includes("actions/workflows/ci.yml/badge.svg"), "README.md must display the CI badge");
 check(readme.includes("license-MIT-blue.svg"), "README.md must display the MIT badge");
+check(readme.includes("[justfile](justfile)"), "README.md must document the justfile");
+
+for (const recipe of ["default", "validate", "validate-claude", "discover", "check", "demo", "demo-claude", "demo-copilot", "run"]) {
+  check(new RegExp(`^${recipe}:`, "m").test(justfile), `justfile is missing the ${recipe} recipe`);
+}
 
 for (const term of ["**Keep**", "**Pair**", "**Delegate**", "**Refine**", "**Let go**"]) {
   check(skill.includes(term), `SKILL.md is missing required terminology: ${term}`);
@@ -165,6 +186,32 @@ check(logo.includes('viewBox="0 0 512 512"'), "assets/joy.svg: expected a square
 check(logo.includes('fill="#ffffff"'), "assets/joy.svg: expected an explicit white background");
 check(!/<(?:text|script|image|foreignObject)\b/i.test(logo), "assets/joy.svg: text, scripts, and external images are not allowed");
 check(readme.includes('src="assets/joy.svg"'), "README.md must display the Joy logo");
+
+const claudeTape = read(join(root, "assets", "claude.tape"));
+const copilotTape = read(join(root, "assets", "copilot.tape"));
+const claudeDemo = readBytes(join(root, "assets", "claude.gif"));
+const copilotDemo = readBytes(join(root, "assets", "copilot.gif"));
+check(["GIF87a", "GIF89a"].includes(claudeDemo.subarray(0, 6).toString("ascii")), "assets/claude.gif: expected a valid GIF header");
+check(claudeDemo.length < 5_000_000, "assets/claude.gif: keep the demo below 5 MB");
+check(["GIF87a", "GIF89a"].includes(copilotDemo.subarray(0, 6).toString("ascii")), "assets/copilot.gif: expected a valid GIF header");
+check(copilotDemo.length < 5_000_000, "assets/copilot.gif: keep the demo below 5 MB");
+check(claudeTape.includes("Output assets/claude.gif"), "assets/claude.tape must render assets/claude.gif");
+check(claudeTape.includes("Require claude"), "assets/claude.tape must require Claude Code");
+check(claudeTape.includes("/joy:joy pair"), "assets/claude.tape must invoke the Joy plugin in pair mode");
+check(claudeTape.includes("stty -echo; clear; claude"), "assets/claude.tape must suppress the terminal handshake without hiding Claude's banner");
+check(claudeTape.includes("--disallowedTools"), "assets/claude.tape must prevent tools from changing the repository");
+check(!/(?:^|\s)(?:-p|--print)(?:\s|$)/m.test(claudeTape), "assets/claude.tape must record interactive Claude Code, not print mode");
+check(!claudeTape.includes("dangerously-skip-permissions"), "assets/claude.tape must not bypass Claude Code permissions");
+check(copilotTape.includes("Output assets/copilot.gif"), "assets/copilot.tape must render assets/copilot.gif");
+check(copilotTape.includes("Require copilot"), "assets/copilot.tape must require GitHub Copilot CLI");
+check(copilotTape.includes("Use the /joy skill in learn mode"), "assets/copilot.tape must invoke Joy in learn mode");
+check(copilotTape.includes("--plugin-dir ."), "assets/copilot.tape must load the local plugin");
+check(copilotTape.includes("--available-tools="), "assets/copilot.tape must prevent tools from changing the repository");
+check(copilotTape.includes("--session-id"), "assets/copilot.tape must isolate each recording session");
+check(!/(?:--allow-all|--yolo)\b/.test(copilotTape), "assets/copilot.tape must not bypass Copilot permissions");
+check(readme.includes('src="assets/claude.gif"'), "README.md must display the Claude Code demo");
+check(readme.includes('src="assets/copilot.gif"'), "README.md must display the Copilot CLI demo");
+check(readme.includes("(assets/copilot.tape)"), "README.md must link the Copilot CLI tape");
 
 const evaluations = readJson(evalPath);
 if (evaluations) {
@@ -217,7 +264,8 @@ for (const path of allFiles.filter((file) => file.endsWith(".md"))) {
   }
 }
 
-const textFiles = allFiles.filter((path) => statSync(path).isFile());
+const textExtensions = new Set([".json", ".md", ".mjs", ".svg", ".tape", ".yml"]);
+const textFiles = allFiles.filter((path) => textExtensions.has(extname(path)) || path === justfilePath);
 const placeholderFragments = [
   "TO" + "DO",
   "FIX" + "ME",

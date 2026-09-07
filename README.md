@@ -10,7 +10,7 @@
 
 > “When you’re choosing what to keep, ask your heart; when you’re choosing where to store something, ask your house!”
 >
-> — Marie Kondo, [“Why the KonMari Method™ Works”](https://konmari.com/what-is-konmari-method/)
+> — Marie Kondo
 
 Joy is a KonMari-inspired Claude Code skill that helps you decide what to delegate without giving away the parts of programming you love.
 
@@ -19,6 +19,22 @@ AI agents are good at removing friction, but they can also remove discovery, und
 > **Which part do you want to remain yours?**
 
 It distinguishes meaningful challenge from incidental toil. It is not anti-AI, anti-productivity, or a claim that all difficulty is worthwhile.
+
+## 🎬 See Joy in action
+
+### Claude Code
+
+<p align="center">
+	<img src="assets/claude.gif" alt="Claude Code running Joy in pair mode and dividing a slugify task into Keep, Pair, and Delegate work" width="900">
+</p>
+
+### GitHub Copilot CLI
+
+<p align="center">
+	<img src="assets/copilot.gif" alt="GitHub Copilot CLI running Joy in learn mode while preserving diagnosis of a binary-search bug" width="900">
+</p>
+
+**Note:** These recordings run the local plugin in interactive CLI sessions. They are generated from [assets/claude.tape](assets/claude.tape) and [assets/copilot.tape](assets/copilot.tape) with [VHS](https://github.com/charmbracelet/vhs); wording may vary when they are re-recorded.
 
 ## ✨ A short example
 
@@ -139,13 +155,33 @@ Tidying uses a different three-way decision: **Keep**, **Refine**, and **Let go*
 
 ## 🧪 Development and evaluation
 
-The repository has no runtime dependencies or build step.
+The skill has no runtime dependencies or build step.
+
+The optional [justfile](justfile) wraps the common development tasks:
+
+```sh
+just           # list recipes
+just validate  # dependency-free structural checks
+just check     # complete local publication suite
+just demo      # re-record the Claude Code demo
+just demo-copilot # record the GitHub Copilot CLI demo
+just run       # launch the local plugin
+```
 
 Run the dependency-free structural validator:
 
 ```sh
 node scripts/validate.mjs
 ```
+
+Re-recording the demos requires VHS and an authenticated installation of the corresponding CLI:
+
+```sh
+vhs assets/claude.tape
+vhs assets/copilot.tape
+```
+
+Each tape opens one interactive session and writes [assets/claude.gif](assets/claude.gif) or [assets/copilot.gif](assets/copilot.gif). Re-running one uses model quota and may produce different wording.
 
 When Claude Code is installed, also run its official validators:
 
@@ -158,7 +194,7 @@ Load the plugin locally with `claude --plugin-dir .`, then exercise the prompts 
 
 CI runs the same structural validator. It checks frontmatter, names, manifests, mode and command consistency, evaluation coverage, internal links, and common publication mistakes.
 
-Before publishing an update, bump the semantic version in [.claude-plugin/plugin.json](.claude-plugin/plugin.json); Claude Code uses that explicit version to decide whether an installed plugin should update.
+Before publishing changes to the skill or plugin metadata, bump the semantic version in [.claude-plugin/plugin.json](.claude-plugin/plugin.json); Claude Code uses that explicit version to decide whether an installed plugin should update.
 
 ## ⚖️ Independence and trademarks
 
