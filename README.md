@@ -204,7 +204,7 @@ vhs assets/copilot.tape
 
 Each tape opens an interactive session and writes [assets/claude.gif](assets/claude.gif) or [assets/copilot.gif](assets/copilot.gif). Re-recording uses model quota and may produce different wording.
 
-The interactive casts require [asciinema](https://docs.asciinema.org/manual/cli/installation/). Run `just cast-claude` or `just cast-copilot` for a specific CLI, or `just cast` for both. Run `just site`, then open <http://localhost:4173/> to test the same landing page deployed by [the Pages workflow](.github/workflows/pages.yml).
+The interactive casts use the standard-library PTY recorder in [scripts/record_cast.py](scripts/record_cast.py), which types each prompt with visible keystroke pacing. Re-recording requires Python 3.9 or newer and an authenticated installation of the corresponding CLI. Run `just cast-claude` or `just cast-copilot` for a specific CLI, or `just cast` for both. Run `just site`, then open <http://localhost:4173/> to test the same landing page deployed by [the Pages workflow](.github/workflows/pages.yml).
 
 When Claude Code is installed, also run its official validators:
 

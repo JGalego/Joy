@@ -10,6 +10,7 @@ const readmePath = join(root, "README.md");
 const evalPath = join(root, "skills", "joy", "evals", "evals.json");
 const pluginPath = join(root, ".claude-plugin", "plugin.json");
 const marketplacePath = join(root, ".claude-plugin", "marketplace.json");
+const gitignorePath = join(root, ".gitignore");
 const justfilePath = join(root, "justfile");
 const sitePath = join(root, "index.html");
 const siteScriptPath = join(root, "site", "site.js");
@@ -74,6 +75,7 @@ function parseFrontmatter(text) {
 }
 
 const requiredFiles = [
+  ".gitignore",
   "README.md",
   "LICENSE",
   ".claude-plugin/plugin.json",
@@ -94,6 +96,7 @@ const requiredFiles = [
   "site/site.js",
   "site/styles.css",
   "justfile",
+  "scripts/record_cast.py",
   "scripts/validate.mjs"
 ];
 for (const path of requiredFiles) {
@@ -106,8 +109,11 @@ check(skillFiles.length === 1, `expected one canonical SKILL.md, found ${skillFi
 check(skillFiles[0] === skillPath, "canonical skill must be skills/joy/SKILL.md");
 
 const skill = read(skillPath);
+const gitignore = read(gitignorePath);
 const readme = read(readmePath);
 const justfile = read(justfilePath);
+
+check(/^__pycache__\/$/m.test(gitignore), ".gitignore must exclude Python bytecode cache directories");
 const siteHtml = read(sitePath);
 const siteScript = read(siteScriptPath);
 const pagesWorkflow = read(pagesWorkflowPath);
@@ -275,6 +281,8 @@ function validateCast(filename, title, requiredText) {
   check(!/(?:github_pat_|gh[oprsu]_|sk-)[A-Za-z0-9_-]{12,}/.test(source), `assets/${filename}: recording may contain a credential`);
 
   let previousTime = -1;
+  const events = [];
+  const inputEvents = [];
   for (const [index, line] of lines.slice(1).entries()) {
     let event;
     try {
@@ -288,8 +296,23 @@ function validateCast(filename, title, requiredText) {
     check(Number.isFinite(event[0]) && event[0] >= previousTime, `assets/${filename}:${index + 2}: event times must be monotonic`);
     check(["i", "m", "o", "r"].includes(event[1]), `assets/${filename}:${index + 2}: unsupported event type ${event[1]}`);
     check(typeof event[2] === "string", `assets/${filename}:${index + 2}: event payload must be text`);
+    events.push(event);
+    if (event[1] === "i") inputEvents.push(event);
     previousTime = event[0];
   }
+
+  const submitIndex = inputEvents.findIndex((event) => event[2] === "\r");
+  const promptInput = submitIndex >= 0 ? inputEvents.slice(0, submitIndex) : [];
+  const typedPrompt = promptInput.map((event) => event[2]).join("");
+  check(typedPrompt.includes(requiredText), `assets/${filename}: recording input does not contain the intended prompt`);
+  check(promptInput.length === typedPrompt.length, `assets/${filename}: intended prompt must be recorded as individual keystrokes`);
+  check(promptInput.every((event) => event[2].length === 1), `assets/${filename}: intended prompt must not be pasted in a single event`);
+  const typingDuration = promptInput.length > 1 ? promptInput.at(-1)[0] - promptInput[0][0] : 0;
+  check(typingDuration >= 0.5, `assets/${filename}: intended prompt must have visible typing pace`);
+  const typingRedraws = promptInput.length > 1
+    ? events.filter((event) => event[1] === "o" && event[0] >= promptInput[0][0] && event[0] <= promptInput.at(-1)[0] + 0.25)
+    : [];
+  check(typingRedraws.length >= 20, `assets/${filename}: terminal must visibly redraw while the prompt is typed`);
 }
 
 validateCast("claude.cast", "Joy — Claude Code", "/joy:joy pair");
