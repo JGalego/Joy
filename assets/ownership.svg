@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title description">
+  <title id="title">The Joy ownership boundary</title>
+  <desc id="description">Three folded-paper cards show work the user keeps, work done together, and work intentionally released on an origami crane. A rail below shows that the boundary can move.</desc>
+  <rect width="1200" height="360" rx="40" fill="#ffffff"/>
+
+  <g transform="translate(24 28)">
+    <rect width="368" height="196" rx="24" fill="#fff8f2" stroke="#f2d7ca" stroke-width="2"/>
+    <path d="M0 24A24 24 0 0 1 24 0h70L0 94Z" fill="#d95f45"/>
+    <path d="m42 70 29-29 29 29-29 29Z" fill="#ffffff"/>
+    <path d="m71 41 29 29-29 8Z" fill="#f5ba45"/>
+    <text x="144" y="76" fill="#5d3429" font-family="ui-sans-serif, system-ui, sans-serif" font-size="23" font-weight="800" letter-spacing="2">KEEP</text>
+    <text x="144" y="111" fill="#7e5b51" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17">Your judgment, craft,</text>
+    <text x="144" y="138" fill="#7e5b51" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17">and discovery</text>
+  </g>
+
+  <g transform="translate(416 28)">
+    <rect width="368" height="196" rx="24" fill="#fffaf0" stroke="#f1dca8" stroke-width="2"/>
+    <path d="M0 24A24 24 0 0 1 24 0h70L0 94Z" fill="#f5ba45"/>
+    <path d="m33 69 25-25 25 25-25 25Z" fill="#ffffff"/>
+    <path d="m58 69 25-25 25 25-25 25Z" fill="#d95f45" fill-opacity=".88"/>
+    <text x="144" y="76" fill="#5d3429" font-family="ui-sans-serif, system-ui, sans-serif" font-size="23" font-weight="800" letter-spacing="2">PAIR</text>
+    <text x="144" y="111" fill="#7e5b51" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17">Shared reasoning,</text>
+    <text x="144" y="138" fill="#7e5b51" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17">small steps</text>
+  </g>
+
+  <g transform="translate(808 28)">
+    <rect width="368" height="196" rx="24" fill="#fff8f2" stroke="#f2d7ca" stroke-width="2"/>
+    <path d="M0 24A24 24 0 0 1 24 0h70L0 94Z" fill="#d95f45"/>
+    <path d="m27 77 28-31 16 16 38-23-21 39 22 17-37-10-21 17 4-28Z" fill="#ffffff"/>
+    <path d="m55 46 16 16-15 12Zm16 16 38-23-21 39Z" fill="#f5ba45"/>
+    <text x="144" y="76" fill="#5d3429" font-family="ui-sans-serif, system-ui, sans-serif" font-size="23" font-weight="800" letter-spacing="2">DELEGATE</text>
+    <text x="144" y="111" fill="#7e5b51" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17">Execution you choose</text>
+    <text x="144" y="138" fill="#7e5b51" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17">to hand off</text>
+  </g>
+
+  <path d="M208 274H992" fill="none" stroke="#efd9cf" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="208" cy="274" r="10" fill="#d95f45"/>
+  <circle cx="992" cy="274" r="10" fill="#f5ba45"/>
+  <path d="m600 258 16 16-16 16-16-16Z" fill="#d95f45"/>
+  <path d="m600 258 16 16-16 3Z" fill="#f5ba45"/>
+  <text x="600" y="326" fill="#9a7468" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" font-weight="700" letter-spacing="2" text-anchor="middle">THE BOUNDARY MOVES WITH YOU</text>
+</svg>

@@ -18,6 +18,10 @@ AI agents are good at removing friction, but they can also remove discovery, und
 
 > **Which part do you want to remain yours?**
 
+<p align="center">
+	<img src="assets/ownership.svg" alt="The movable boundary between work you Keep, Pair on, and Delegate" width="900">
+</p>
+
 It distinguishes meaningful challenge from incidental toil. It is not anti-AI, anti-productivity, or a claim that all difficulty is worthwhile.
 
 ## 🎬 See Joy in action

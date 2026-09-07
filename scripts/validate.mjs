@@ -79,6 +79,7 @@ const requiredFiles = [
   "skills/joy/SKILL.md",
   "skills/joy/evals/evals.json",
   "assets/joy.svg",
+  "assets/ownership.svg",
   "assets/claude.gif",
   "assets/copilot.gif",
   "assets/claude.tape",
@@ -186,6 +187,20 @@ check(logo.includes('viewBox="0 0 512 512"'), "assets/joy.svg: expected a square
 check(logo.includes('fill="#ffffff"'), "assets/joy.svg: expected an explicit white background");
 check(!/<(?:text|script|image|foreignObject)\b/i.test(logo), "assets/joy.svg: text, scripts, and external images are not allowed");
 check(readme.includes('src="assets/joy.svg"'), "README.md must display the Joy logo");
+
+const ownership = read(join(root, "assets", "ownership.svg"));
+check(ownership.startsWith("<svg "), "assets/ownership.svg: expected an SVG document");
+check(ownership.includes('width="1200" height="360" viewBox="0 0 1200 360"'), "assets/ownership.svg: expected 1200×360 intrinsic dimensions and viewBox");
+check(ownership.includes("<title ") && ownership.includes("<desc "), "assets/ownership.svg: expected accessible title and description");
+for (const term of ["KEEP", "PAIR", "DELEGATE", "THE BOUNDARY MOVES WITH YOU"]) {
+  check(ownership.includes(term), `assets/ownership.svg: missing ${term}`);
+}
+check(!ownership.includes("Which part do you want to remain yours?"), "assets/ownership.svg: do not repeat the ownership question");
+for (const position of ["translate(24 28)", "translate(416 28)", "translate(808 28)"]) {
+  check(ownership.includes(position), `assets/ownership.svg: missing centered card position ${position}`);
+}
+check(!/<(?:script|image|foreignObject)\b/i.test(ownership), "assets/ownership.svg: scripts and external content are not allowed");
+check(readme.includes('src="assets/ownership.svg"'), "README.md must display the ownership boundary visual");
 
 const claudeTape = read(join(root, "assets", "claude.tape"));
 const copilotTape = read(join(root, "assets", "copilot.tape"));
