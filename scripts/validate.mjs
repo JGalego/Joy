@@ -230,6 +230,7 @@ check(readme.includes("(assets/copilot.tape)"), "README.md must link the Copilot
 check(readme.includes("<details open>"), "README.md must open the primary demo by default");
 check(readme.includes("<summary><strong>Claude Code</strong>"), "README.md must label the Claude Code demo panel");
 check(readme.includes("<summary><strong>GitHub Copilot CLI</strong>"), "README.md must label the Copilot CLI demo panel");
+check(readme.includes("<summary><strong>Not sure which mode fits?</strong></summary>"), "README.md must include the interactive mode chooser");
 
 const evaluations = readJson(evalPath);
 if (evaluations) {

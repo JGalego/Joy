@@ -102,6 +102,18 @@ Joy can activate from requests about preserving authorship, learning without rec
 
 Explicit personal-skill invocations use `/joy <mode>`:
 
+<details>
+<summary><strong>Not sure which mode fits?</strong></summary>
+
+- 📚 **I want to understand it** → `/joy learn`
+- 🤝 **I want to work through it together** → `/joy pair`
+- 🛠️ **I want to author the important code** → `/joy craft`
+- 🚀 **I want it completed safely** → `/joy ship`
+- 🧹 **I want to decide what stays** → `/joy tidy`
+- ⏸️ **I want Joy to step back** → `/joy off`
+
+</details>
+
 | Mode | Protects or optimizes |
 | --- | --- |
 | 🤝 `pair` | Small collaborative steps; the default |
