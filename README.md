@@ -3,16 +3,22 @@
 	<h1>Joy</h1>
 	<p><strong>Keep the joy. Let go of the toil.</strong></p>
 	<p>
+		<a href="https://code.claude.com/docs/en/overview"><img alt="Claude Code compatible" src="https://img.shields.io/badge/Claude_Code-compatible-D97757.svg"></a>
+		<a href="https://docs.github.com/en/copilot/concepts/agents/copilot-cli/about-copilot-cli"><img alt="GitHub Copilot CLI compatible" src="https://img.shields.io/badge/GitHub_Copilot_CLI-compatible-24292F.svg"></a>
+		<a href="https://agentskills.io"><img alt="Agent Skills standard" src="https://img.shields.io/badge/Agent_Skills-standard-F5BA45.svg"></a>
+	</p>
+	<p>
 		<a href="https://github.com/JGalego/Joy/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/JGalego/Joy/actions/workflows/ci.yml/badge.svg"></a>
 		<a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
 	</p>
+	<p><strong>Install:</strong> <code>npx skills add JGalego/Joy --skill joy --agent claude-code --global --yes</code></p>
 </div>
 
 > “When you’re choosing what to keep, ask your heart; when you’re choosing where to store something, ask your house!”
 >
 > — Marie Kondo
 
-Joy is a KonMari-inspired Claude Code skill that helps you decide what to delegate without giving away the parts of programming you love.
+Joy is a KonMari-inspired Agent Skill for Claude Code and GitHub Copilot CLI that helps you decide what to delegate without giving away the parts of programming you love.
 
 AI agents are good at removing friction, but they can also remove discovery, understanding, problem-solving, craftsmanship, and authorship before the user chooses to give those up. Joy adds one focused intervention:
 

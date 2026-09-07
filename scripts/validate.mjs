@@ -99,6 +99,7 @@ check(skillFiles[0] === skillPath, "canonical skill must be skills/joy/SKILL.md"
 const skill = read(skillPath);
 const readme = read(readmePath);
 const justfile = read(justfilePath);
+const masthead = readme.slice(0, readme.indexOf("</div>") + 6);
 const { fields, body } = parseFrontmatter(skill);
 const allowedFrontmatter = new Set([
   "name",
@@ -152,6 +153,10 @@ check(readme.includes("/plugin install joy@joy"), "README.md must document plugi
 check(readme.includes("actions/workflows/ci.yml/badge.svg"), "README.md must display the CI badge");
 check(readme.includes("license-MIT-blue.svg"), "README.md must display the MIT badge");
 check(readme.includes("[justfile](justfile)"), "README.md must document the justfile");
+for (const badge of ["Claude_Code-compatible", "GitHub_Copilot_CLI-compatible", "Agent_Skills-standard"]) {
+  check(masthead.includes(badge), `README.md masthead is missing the ${badge} badge`);
+}
+check(masthead.includes("npx skills add JGalego/Joy --skill joy --agent claude-code --global --yes"), "README.md masthead must include the primary install command");
 
 for (const recipe of ["default", "validate", "validate-claude", "discover", "check", "demo", "demo-claude", "demo-copilot", "run"]) {
   check(new RegExp(`^${recipe}:`, "m").test(justfile), `justfile is missing the ${recipe} recipe`);
