@@ -1,0 +1,16 @@
+{
+  "name": "joy",
+  "displayName": "Joy",
+  "version": "0.1.0",
+  "description": "A KonMari-inspired skill for choosing what to Keep, Pair on, and Delegate while programming with AI.",
+  "author": {
+    "name": "Joy contributors"
+  },
+  "license": "MIT",
+  "keywords": [
+    "authorship",
+    "learning",
+    "pair-programming",
+    "tidying"
+  ]
+}

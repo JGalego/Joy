@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">Joy</title>
+  <desc id="description">A warm golden origami crane in flight.</desc>
+  <rect width="512" height="512" rx="112" fill="#ffffff"/>
+  <g transform="translate(16 16) scale(.9375)">
+    <polygon points="191.524 410.641 0 373.315 106.668 479.983 191.993 479.983" fill="#f5ba45"/>
+    <polygon points="234.586 52.732 174.181 239.319 333.519 425.985 374.846 309.317" fill="#e09a32"/>
+    <path d="M426.657 117.324 277.319 425.985l115.823 11.328s47.576-235.773 57.155-270.913Z" fill="#f5ba45"/>
+    <polygon points="114.23 395.58 142.964 479.983 191.993 479.983 191.524 410.641" fill="#e09a32"/>
+    <path d="m394.659 183.462 40.841 48.577c3.969-18.452 9.313-42.952 11.875-53.873l-31.265-39.062Z" fill="#e09a32"/>
+    <polygon points="400.002 403.47 318.895 340.035 277.319 425.985 393.142 437.313" fill="#e09a32"/>
+    <path d="m85.325 31.999.203 320.207 85.138 127.777h175.916l46.561-42.67S88.653 38.654 85.325 31.999Z" fill="#f5ba45"/>
+    <polygon points="426.657 117.324 394.659 183.462 511.982 223.992" fill="#f5ba45"/>
+  </g>
+</svg>

@@ -1,0 +1,14 @@
+{
+  "name": "joy",
+  "owner": {
+    "name": "Joy contributors"
+  },
+  "description": "Joy helps programmers preserve meaningful work while delegating incidental toil.",
+  "plugins": [
+    {
+      "name": "joy",
+      "source": "./",
+      "description": "Choose what to Keep, Pair on, and Delegate while programming with AI."
+    }
+  ]
+}

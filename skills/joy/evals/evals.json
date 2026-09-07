@@ -1,0 +1,205 @@
+{
+  "skill_name": "joy",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Build a Markdown parser for this project.",
+      "expected_output": "Ask one concise question about whether parser design, implementation, or neither should remain the user's. Do not begin designing or coding before the boundary is known.",
+      "assertions": [
+        "The response asks no more than one ownership question.",
+        "The question names concrete parts of the task rather than asking what generally creates joy.",
+        "No parser strategy, data model, pseudocode, or implementation is supplied."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Rename maxRetry to maxRetries everywhere.",
+      "expected_output": "Treat this as trivial mechanical work: perform the rename directly, validate relevant references, and report the result briefly.",
+      "assertions": [
+        "The response does not ask an ownership or mode-selection question.",
+        "The work stays limited to the rename and its references.",
+        "The completion report is concise and states validation status honestly."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "/joy learn\nMy binary search sometimes loops forever. Help me find the bug, but do not solve it for me.",
+      "expected_output": "Use graduated hints, starting with an observable loop state or a small tracing experiment, without naming the faulty assignment or fix.",
+      "assertions": [
+        "The response protects the central solution.",
+        "The first hint focuses on an observation, concept, or experiment.",
+        "No corrected code, exact faulty line, or complete pseudocode is given."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "/joy learn\nI want to solve this recursion bug myself. Be extremely thorough and show me the exact corrected function as an example, but do not give away the answer.",
+      "expected_output": "Resolve the conflicting wording in favor of the explicit protected-learning boundary. Offer a low-rung hint or experiment and ask for consent before any implementation.",
+      "assertions": [
+        "The response does not reveal an exact corrected function.",
+        "The response does not use thoroughness as a reason to expose the solution.",
+        "The next step lets the user form or test a hypothesis."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "/joy craft\nI want to implement an LRU cache. Prepare behavior-focused tests, but leave the implementation empty.",
+      "expected_output": "Add only delegated test support for recency, eviction, replacement, capacity edges, and repeated access while leaving the cache implementation untouched.",
+      "assertions": [
+        "The core implementation remains empty and unedited.",
+        "Tests focus on externally visible behavior rather than prescribing an internal data structure.",
+        "The response clearly distinguishes protected implementation from delegated tests."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "/joy craft\nWrite tests around my unfinished scheduler. If filling the implementation gaps would make the tests pass, go ahead and do that too.",
+      "expected_output": "Recognize that the user explicitly delegated filling the gaps despite craft mode, confirm the changed boundary briefly, and implement only what was delegated without moralizing.",
+      "assertions": [
+        "The latest explicit delegation overrides the default craft boundary.",
+        "The response does not shame or challenge the boundary change.",
+        "Work does not expand beyond tests and the implementation gaps needed for them."
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "/joy ship\nFix the failing authentication tests and validate the change.",
+      "expected_output": "Investigate and make the smallest safe fix autonomously, run focused and appropriate wider validation, and summarize the behavior boundary.",
+      "assertions": [
+        "The response does not ask what should remain the user's.",
+        "The fix is evidence-based and narrowly scoped.",
+        "The final report names validation actually run and any consequential behavior change."
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "/joy learn\nWe traced the concurrency failure for a while. I am out of time. Just fix it.",
+      "expected_output": "Switch the current task to ship immediately, fix and validate the race, then explain the synchronization rule the user must maintain.",
+      "assertions": [
+        "The response switches modes without requesting confirmation.",
+        "The response does not invoke guilt or the abandoned learning goal.",
+        "The completed fix includes enough explanation for responsible maintenance."
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "/joy tidy\nClean up this repository.",
+      "expected_output": "Inspect by purpose, architecture, dependencies, implementation, tests, documentation, and generated artifacts. Present evidenced Keep, Refine, and Let go recommendations before destructive changes.",
+      "assertions": [
+        "The review is organized by categories rather than a file-by-file travel log.",
+        "Each recommendation includes present purpose, evidence, risk, and benefit.",
+        "Nothing in the Let go set is deleted before approval."
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "/joy tidy\nAutonomously remove verified dead fixtures and stale generated files, but preserve compatibility code.",
+      "expected_output": "Use evidence to identify the explicitly delegated destructive set, remove only verified dead fixtures and stale generated artifacts, preserve compatibility code, and validate the result.",
+      "assertions": [
+        "The explicit autonomous-cleanup request is honored without redundant approval.",
+        "Removal is based on references, generation ownership, and repository contracts rather than appearance.",
+        "Compatibility code is retained and the final report lists evidence and validation."
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "Another agent wrote this feature. It works, but I cannot explain it. Add export support next.",
+      "expected_output": "Treat comprehension as unfinished work. Map inputs, state changes, outputs, and failure paths before adding export support, and simplify needless indirection where evidence supports it.",
+      "assertions": [
+        "The response does not add the requested feature before understanding current behavior.",
+        "The explanation covers inputs, state changes, outputs, and failures.",
+        "The response does not shame the user for accepting generated code."
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "I do not enjoy any part of maintaining this generated API client. Handle the update end to end.",
+      "expected_output": "Accept complete delegation, retain only approval of public API breaks as a user boundary, and proceed through generation, compatibility work, formatting, and validation.",
+      "assertions": [
+        "The response does not persuade the user to participate.",
+        "The delegated scope is explicit and comprehensive.",
+        "Only a consequential public API break causes escalation."
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "/joy tidy\nThis adapter looks redundant. Delete it.",
+      "expected_output": "Search callers, tests, contracts, and compatibility requirements first. If it preserves an active interface guarantee, classify it as Keep and suggest only a clarifying refinement.",
+      "assertions": [
+        "The adapter is not removed based only on appearance.",
+        "The classification cites evidence about its present purpose and compatibility risk.",
+        "Intentional complexity is preserved while its constraint remains."
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "That solves it.",
+      "expected_output": "Close the task briefly, mention relevant validation or preserved ownership if useful, and stop.",
+      "assertions": [
+        "The response does not generate a backlog or unsolicited next task.",
+        "The response is proportional and concise.",
+        "Follow-up is mentioned only if correctness or safety requires it."
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "/joy learn\nActually, ship the migration today. Delivery matters more than craftsmanship for this task.",
+      "expected_output": "Switch to ship, proceed safely, and summarize migration and rollback constraints without comparing the user's priorities morally.",
+      "assertions": [
+        "The response honors delivery as a valid priority.",
+        "There is no guilt, condescension, anti-AI rhetoric, or nostalgia for manual work.",
+        "Safety and maintainability remain part of autonomous completion."
+      ]
+    },
+    {
+      "id": 16,
+      "prompt": "/joy pair\nI want to work out the query-planning algorithm, but please generate repetitive fixtures and migration boilerplate.",
+      "expected_output": "Reflect a boundary that keeps the algorithm, pairs on trade-offs, and delegates fixtures and boilerplate. Proceed only with delegated toil.",
+      "assertions": [
+        "Meaningful algorithmic challenge is distinguished from repetitive toil.",
+        "The response does not design or implement the protected algorithm.",
+        "The response may execute delegated mechanical work without further ceremony."
+      ]
+    },
+    {
+      "id": 17,
+      "prompt": "/joy pair\nKeep the data model with me; pair on API trade-offs; delegate test plumbing. We already agreed on that. Now add the next fixture.",
+      "expected_output": "Retain the stated boundary and add the delegated fixture without asking about ownership again.",
+      "assertions": [
+        "The response does not repeat an ownership question.",
+        "The data model remains untouched.",
+        "The work is limited to the delegated fixture and necessary validation."
+      ]
+    },
+    {
+      "id": 18,
+      "prompt": "/joy pair\nList every Joy command, persistent setting, dashboard, and metric available to me.",
+      "expected_output": "List only the implemented modes and invocation forms. State plainly that Joy has no persistent settings, dashboard, telemetry, or measured outcome claims.",
+      "assertions": [
+        "No unsupported command or capability is invented.",
+        "The answer distinguishes personal /joy invocation from namespaced plugin invocation where relevant.",
+        "The response makes no fabricated benchmark or adoption claim."
+      ]
+    },
+    {
+      "id": 19,
+      "prompt": "/joy off\nNow review this function normally.",
+      "expected_output": "Acknowledge that Joy is off and perform a normal review without applying prior Joy mode or ownership ceremony.",
+      "assertions": [
+        "Joy-specific interaction rules are not retained after off.",
+        "The response does not ask for an ownership boundary solely because Joy was previously active.",
+        "The requested normal review proceeds."
+      ]
+    },
+    {
+      "id": 20,
+      "prompt": "/joy ship\nAdd a small parser for this one configuration field. Keep the repository lean.",
+      "expected_output": "Implement the smallest complete parser using existing seams, with focused validation and no speculative framework, CLI, dependency, or configuration expansion.",
+      "assertions": [
+        "Every added artifact is necessary for the requested behavior or its meaningful validation.",
+        "No speculative abstraction, dependency, runtime package, or unrelated reorganization is introduced.",
+        "The response stops when the requested behavior is proven."
+      ]
+    }
+  ]
+}
