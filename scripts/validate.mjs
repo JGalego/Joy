@@ -11,6 +11,9 @@ const evalPath = join(root, "skills", "joy", "evals", "evals.json");
 const pluginPath = join(root, ".claude-plugin", "plugin.json");
 const marketplacePath = join(root, ".claude-plugin", "marketplace.json");
 const justfilePath = join(root, "justfile");
+const sitePath = join(root, "index.html");
+const siteScriptPath = join(root, "site", "site.js");
+const pagesWorkflowPath = join(root, ".github", "workflows", "pages.yml");
 const errors = [];
 
 function check(condition, message) {
@@ -76,14 +79,20 @@ const requiredFiles = [
   ".claude-plugin/plugin.json",
   ".claude-plugin/marketplace.json",
   ".github/workflows/ci.yml",
+  ".github/workflows/pages.yml",
   "skills/joy/SKILL.md",
   "skills/joy/evals/evals.json",
   "assets/joy.svg",
   "assets/ownership.svg",
+  "assets/claude.cast",
+  "assets/copilot.cast",
   "assets/claude.gif",
   "assets/copilot.gif",
   "assets/claude.tape",
   "assets/copilot.tape",
+  "index.html",
+  "site/site.js",
+  "site/styles.css",
   "justfile",
   "scripts/validate.mjs"
 ];
@@ -99,6 +108,9 @@ check(skillFiles[0] === skillPath, "canonical skill must be skills/joy/SKILL.md"
 const skill = read(skillPath);
 const readme = read(readmePath);
 const justfile = read(justfilePath);
+const siteHtml = read(sitePath);
+const siteScript = read(siteScriptPath);
+const pagesWorkflow = read(pagesWorkflowPath);
 const masthead = readme.slice(0, readme.indexOf("</div>") + 6);
 const { fields, body } = parseFrontmatter(skill);
 const allowedFrontmatter = new Set([
@@ -158,7 +170,7 @@ for (const badge of ["Claude_Code-compatible", "GitHub_Copilot_CLI-compatible", 
 }
 check(masthead.includes("npx skills add JGalego/Joy --skill joy --agent claude-code --global --yes"), "README.md masthead must include the primary install command");
 
-for (const recipe of ["default", "validate", "validate-claude", "discover", "check", "demo", "demo-claude", "demo-copilot", "run"]) {
+for (const recipe of ["default", "validate", "validate-claude", "discover", "check", "demo", "demo-claude", "demo-copilot", "cast", "cast-claude", "cast-copilot", "site", "run"]) {
   check(new RegExp(`^${recipe}:`, "m").test(justfile), `justfile is missing the ${recipe} recipe`);
 }
 
@@ -237,6 +249,102 @@ check(readme.includes("<summary><strong>Claude Code</strong>"), "README.md must 
 check(readme.includes("<summary><strong>GitHub Copilot CLI</strong>"), "README.md must label the Copilot CLI demo panel");
 check(readme.includes("<summary><strong>Not sure which mode fits?</strong></summary>"), "README.md must include the interactive mode chooser");
 
+function validateCast(filename, title, requiredText) {
+  const path = join(root, "assets", filename);
+  const source = read(path);
+  const bytes = readBytes(path);
+  const lines = source.trimEnd().split("\n");
+  let header;
+
+  try {
+    header = JSON.parse(lines[0]);
+  } catch (error) {
+    check(false, `assets/${filename}: invalid header JSON: ${error.message}`);
+  }
+
+  check(header?.version === 2, `assets/${filename}: expected asciicast v2`);
+  check(header?.width === 120 && header?.height === 38, `assets/${filename}: expected a 120×38 terminal`);
+  check(header?.idle_time_limit === 2, `assets/${filename}: expected a two-second idle limit`);
+  check(header?.title === title, `assets/${filename}: unexpected recording title`);
+  check(lines.length >= 20, `assets/${filename}: recording has too few events`);
+  check(bytes.length < 500_000, `assets/${filename}: keep the cast below 500 KB`);
+  check(source.includes(requiredText), `assets/${filename}: recording does not show Joy's intended interaction`);
+  check(!source.includes("--resume"), `assets/${filename}: remove resumable session identifiers before publication`);
+  check(!/\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i.test(source), `assets/${filename}: remove UUID-like session identifiers before publication`);
+  check(!/\/(?:home|Users)\//.test(source), `assets/${filename}: remove local home-directory paths before publication`);
+  check(!/(?:github_pat_|gh[oprsu]_|sk-)[A-Za-z0-9_-]{12,}/.test(source), `assets/${filename}: recording may contain a credential`);
+
+  let previousTime = -1;
+  for (const [index, line] of lines.slice(1).entries()) {
+    let event;
+    try {
+      event = JSON.parse(line);
+    } catch (error) {
+      check(false, `assets/${filename}:${index + 2}: invalid event JSON: ${error.message}`);
+      continue;
+    }
+    check(Array.isArray(event) && event.length === 3, `assets/${filename}:${index + 2}: expected a three-item event`);
+    if (!Array.isArray(event) || event.length !== 3) continue;
+    check(Number.isFinite(event[0]) && event[0] >= previousTime, `assets/${filename}:${index + 2}: event times must be monotonic`);
+    check(["i", "m", "o", "r"].includes(event[1]), `assets/${filename}:${index + 2}: unsupported event type ${event[1]}`);
+    check(typeof event[2] === "string", `assets/${filename}:${index + 2}: event payload must be text`);
+    previousTime = event[0];
+  }
+}
+
+validateCast("claude.cast", "Joy — Claude Code", "/joy:joy pair");
+validateCast("copilot.cast", "Joy — GitHub Copilot CLI", "Use the /joy skill in learn mode");
+
+for (const target of ["claude", "copilot"]) {
+  const demoUrl = `https://jgalego.github.io/Joy/?demo=${target}#demo`;
+  check(readme.includes(demoUrl), `README.md must link the ${target} demo to the Joy site`);
+  check(siteScript.includes(`assets/${target}.cast`), `site/site.js must load assets/${target}.cast`);
+}
+check(readme.includes("https://jgalego.github.io/Joy/"), "README.md must link to the Joy site");
+check(siteHtml.includes("Keep the joy. Let go of the toil."), "index.html must lead with Joy's tagline");
+check(siteHtml.includes("Which part do you want to remain yours?"), "index.html must explain Joy's ownership question");
+for (const section of ["how-it-works", "modes", "demo", "install"]) {
+  check(siteHtml.includes(`id="${section}"`), `index.html must include the ${section} section`);
+}
+for (const mode of modes) {
+  check(siteHtml.includes(`<code>${mode}</code>`), `index.html must explain the ${mode} mode`);
+}
+check(siteHtml.includes("asciinema-player@3.17.0"), "index.html must pin asciinema-player 3.17.0");
+check((siteHtml.match(/integrity="sha384-/g) ?? []).length === 2, "index.html must integrity-pin both CDN assets");
+for (const integrity of [
+  "sha384-05cmIVRzN7mR7nmqajPpGPUPqJ5VyTAGHL1xJuiGWfhpWDp5hEfBk50kr21f3ILM",
+  "sha384-s55nTYAdrPwGWmKKQ1lCnoB8H9LbqmsXsqqqPAHK2+T5h9IfI2dTXTDXJcZnySJD"
+]) {
+  check(siteHtml.includes(`integrity="${integrity}"`), `index.html is missing the expected CDN integrity value ${integrity}`);
+}
+check(siteHtml.includes('http-equiv="Content-Security-Policy"'), "index.html must define a Content Security Policy");
+check(!/<script(?![^>]*\bsrc=)[^>]*>/i.test(siteHtml), "index.html must not contain inline scripts");
+check(siteHtml.includes('class="skip-link"') && siteHtml.includes('id="main"'), "index.html must provide a skip link");
+check(siteHtml.includes('role="tablist"') && siteHtml.includes('role="tabpanel"'), "index.html must expose accessible demo tabs");
+check(siteHtml.includes('id="speed"'), "index.html must provide a playback speed control");
+check(siteHtml.includes("npx skills add JGalego/Joy --skill joy --agent claude-code --global --yes"), "index.html must include the primary install command");
+for (const match of siteHtml.matchAll(/\b(?:href|src)="([^"]+)"/g)) {
+  const target = match[1];
+  if (/^(?:https?:|#)/.test(target)) continue;
+  const local = decodeURIComponent(target.split("#", 1)[0].split("?", 1)[0]);
+  check(existsSync(resolve(root, local)), `index.html: broken local resource ${target}`);
+}
+check(siteScript.includes("AsciinemaPlayer.create"), "site/site.js must create the terminal player");
+check(siteScript.includes('controls: true'), "site/site.js must expose pause and seek controls");
+check(siteScript.includes('fit: "width"'), "site/site.js must keep recordings responsive");
+check(siteScript.includes("speed,") && siteScript.includes("startAt,"), "site/site.js must preserve playback controls when speed changes");
+check(siteScript.includes("navigator.clipboard.writeText"), "site/site.js must make the install command copyable");
+
+for (const action of ["actions/checkout@v6", "actions/configure-pages@v5", "actions/upload-pages-artifact@v4", "actions/deploy-pages@v4"]) {
+  check(pagesWorkflow.includes(action), `.github/workflows/pages.yml must use ${action}`);
+}
+check(pagesWorkflow.includes("pages: write"), ".github/workflows/pages.yml must grant Pages write access only to deployment");
+check(pagesWorkflow.includes("id-token: write"), ".github/workflows/pages.yml must grant OIDC access only to deployment");
+check(pagesWorkflow.includes("cp index.html _site/index.html"), ".github/workflows/pages.yml must publish the landing page at the site root");
+check(pagesWorkflow.includes("site/styles.css site/site.js"), ".github/workflows/pages.yml must publish the site assets");
+check(pagesWorkflow.includes("assets/joy.svg assets/ownership.svg assets/claude.cast assets/copilot.cast"), ".github/workflows/pages.yml must publish the visual and recording assets");
+check(pagesWorkflow.includes("path: _site"), ".github/workflows/pages.yml must upload only the staged site");
+
 const evaluations = readJson(evalPath);
 if (evaluations) {
   check(evaluations.skill_name === "joy", "evaluation skill_name must be joy");
@@ -288,7 +396,7 @@ for (const path of allFiles.filter((file) => file.endsWith(".md"))) {
   }
 }
 
-const textExtensions = new Set([".json", ".md", ".mjs", ".svg", ".tape", ".yml"]);
+const textExtensions = new Set([".cast", ".css", ".html", ".js", ".json", ".md", ".mjs", ".svg", ".tape", ".yml"]);
 const textFiles = allFiles.filter((path) => textExtensions.has(extname(path)) || path === justfilePath);
 const placeholderFragments = [
   "TO" + "DO",

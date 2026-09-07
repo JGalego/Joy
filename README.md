@@ -11,6 +11,7 @@
 		<a href="https://github.com/JGalego/Joy/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/JGalego/Joy/actions/workflows/ci.yml/badge.svg"></a>
 		<a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
 	</p>
+	<p><a href="https://jgalego.github.io/Joy/"><strong>Explore Joy →</strong></a></p>
 	<p><strong>Install:</strong> <code>npx skills add JGalego/Joy --skill joy --agent claude-code --global --yes</code></p>
 </div>
 
@@ -20,7 +21,7 @@
 
 Joy is a KonMari-inspired Agent Skill for Claude Code and GitHub Copilot CLI that helps you decide what to delegate without giving away the parts of programming you love.
 
-AI agents are good at removing friction, but they can also remove discovery, understanding, problem-solving, craftsmanship, and authorship before the user chooses to give those up. Joy adds one focused intervention:
+AI agents are good at removing friction, but they can also remove discovery, understanding, problem-solving, craftsmanship, and authorship before the user chooses to give those up. Joy adds a focused intervention:
 
 > **Which part do you want to remain yours?**
 
@@ -38,7 +39,9 @@ It distinguishes meaningful challenge from incidental toil. It is not anti-AI, a
 <br>
 
 <p align="center">
-	<img src="assets/claude.gif" alt="Claude Code running Joy in pair mode and dividing a slugify task into Keep, Pair, and Delegate work" width="900">
+	<a href="https://jgalego.github.io/Joy/?demo=claude#demo"><img src="assets/claude.gif" alt="Claude Code running Joy in pair mode and dividing a slugify task into Keep, Pair, and Delegate work" width="900"></a>
+	<br>
+	<a href="https://jgalego.github.io/Joy/?demo=claude#demo"><strong>Open the interactive recording →</strong></a>
 </p>
 
 </details>
@@ -49,12 +52,14 @@ It distinguishes meaningful challenge from incidental toil. It is not anti-AI, a
 <br>
 
 <p align="center">
-	<img src="assets/copilot.gif" alt="GitHub Copilot CLI running Joy in learn mode while preserving diagnosis of a binary-search bug" width="900">
+	<a href="https://jgalego.github.io/Joy/?demo=copilot#demo"><img src="assets/copilot.gif" alt="GitHub Copilot CLI running Joy in learn mode while preserving diagnosis of a binary-search bug" width="900"></a>
+	<br>
+	<a href="https://jgalego.github.io/Joy/?demo=copilot#demo"><strong>Open the interactive recording →</strong></a>
 </p>
 
 </details>
 
-**Note:** These recordings run the local plugin in interactive CLI sessions. They are generated from [assets/claude.tape](assets/claude.tape) and [assets/copilot.tape](assets/copilot.tape) with [VHS](https://github.com/charmbracelet/vhs); wording may vary when they are re-recorded.
+**Note:** These recordings run the local plugin in interactive CLI sessions. The GIF fallbacks come from [assets/claude.tape](assets/claude.tape) and [assets/copilot.tape](assets/copilot.tape) with [VHS](https://github.com/charmbracelet/vhs). The Joy site uses [assets/claude.cast](assets/claude.cast) and [assets/copilot.cast](assets/copilot.cast) with [asciinema-player](https://github.com/asciinema/asciinema-player), adding pause, seek, speed, fullscreen, and selectable text. Wording may vary when recordings are regenerated.
 
 ## 📦 Install
 
@@ -157,7 +162,7 @@ A selected mode remains active in the current conversation until changed. “Jus
 
 The boundary can change at any time. Joy asks at most one ownership question at the start of a substantial ambiguous task, never for trivial work, and not when the user already made the boundary clear.
 
-Tidying uses a different three-way decision: **Keep**, **Refine**, and **Let go**. Destructive tidying is proposed before it is applied unless autonomous cleanup was explicitly requested.
+Tidying uses a different decision: **Keep**, **Refine**, or **Let go**. Destructive tidying is proposed before it is applied unless autonomous cleanup was explicitly requested.
 
 ## ⚠️ Limitations
 
@@ -177,8 +182,10 @@ The optional [justfile](justfile) wraps the common development tasks:
 just           # list recipes
 just validate  # dependency-free structural checks
 just check     # complete local publication suite
-just demo      # re-record the Claude Code demo
-just demo-copilot # record the GitHub Copilot CLI demo
+just demo      # re-record the Claude Code GIF
+just demo-copilot # re-record the Copilot CLI GIF
+just cast      # re-record both interactive terminal casts
+just site      # preview the Joy site locally
 just run       # launch the local plugin
 ```
 
@@ -188,14 +195,16 @@ Run the dependency-free structural validator:
 node scripts/validate.mjs
 ```
 
-Re-recording the demos requires VHS and an authenticated installation of the corresponding CLI:
+Re-recording the GIFs requires VHS and an authenticated installation of the corresponding CLI:
 
 ```sh
 vhs assets/claude.tape
 vhs assets/copilot.tape
 ```
 
-Each tape opens one interactive session and writes [assets/claude.gif](assets/claude.gif) or [assets/copilot.gif](assets/copilot.gif). Re-running one uses model quota and may produce different wording.
+Each tape opens an interactive session and writes [assets/claude.gif](assets/claude.gif) or [assets/copilot.gif](assets/copilot.gif). Re-recording uses model quota and may produce different wording.
+
+The interactive casts require [asciinema](https://docs.asciinema.org/manual/cli/installation/). Run `just cast-claude` or `just cast-copilot` for a specific CLI, or `just cast` for both. Run `just site`, then open <http://localhost:4173/> to test the same landing page deployed by [the Pages workflow](.github/workflows/pages.yml).
 
 When Claude Code is installed, also run its official validators:
 
