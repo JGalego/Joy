@@ -28,7 +28,6 @@ IDLE_LIMIT = 2.0
 READY_TIMEOUT = 60.0
 RESPONSE_TIMEOUT = 120.0
 TYPING_DELAY = 0.014
-COMPLETION_MARKER = "Delegate:"
 PROMPT_PATTERN = re.compile(r'^Type "(.+)"$', re.MULTILINE)
 UUID_PATTERN = re.compile(
     r"\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b",
@@ -44,6 +43,11 @@ class Demo:
     command: tuple[str, ...]
     environment: dict[str, str]
     unset_environment: tuple[str, ...]
+    completion_marker: str = "Delegate:"
+    start_marker: str = ""
+    submit_marker: str = ""
+    output_markers: tuple[tuple[str, str], ...] = ()
+    response_timeout: float = RESPONSE_TIMEOUT
 
 
 DEMOS = {
@@ -86,6 +90,36 @@ DEMOS = {
         ),
         environment={"COPILOT_MULTIPLEXER": "none"},
         unset_environment=("TERM_PROGRAM", "TERM_PROGRAM_VERSION"),
+    ),
+    "case-study": Demo(
+        title="Joy — Crash-safe webhook worker",
+        tape="assets/case-study.tape",
+        ready_text="Sonnet",
+        command=(
+            "claude",
+            "--plugin-dir",
+            ".",
+            "--setting-sources",
+            "project",
+            "--no-chrome",
+            "--effort",
+            "medium",
+            "--permission-mode",
+            "dontAsk",
+            "--allowedTools",
+            "Read,Glob,Grep,Bash(python3 -m unittest discover -s examples/webhook_worker/tests -v)",
+            "--disallowedTools",
+            "Edit,Write,NotebookEdit,WebFetch,WebSearch,Task",
+        ),
+        environment={"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"},
+        unset_environment=("CLAUDE_CODE_SSE_PORT", "TERM_PROGRAM", "TERM_PROGRAM_VERSION"),
+        completion_marker="Ran 3 tests",
+        start_marker="Set the boundary",
+        submit_marker="Inspect the invariant",
+        output_markers=(
+            ("Ran 3 tests", "Run the proof"),
+        ),
+        response_timeout=180.0,
     ),
 }
 
@@ -184,6 +218,8 @@ def record(demo_name: str, output_path: Path) -> None:
                 os._exit(127)
 
         set_terminal_size(fd)
+        marker_output_start: int | None = None
+        pending_markers = list(demo.output_markers)
 
         def pump(timeout: float) -> bool:
             readable, _, _ = select.select([fd], [], [], timeout)
@@ -196,6 +232,13 @@ def record(demo_name: str, output_path: Path) -> None:
             if not data:
                 return False
             recorder.output(data)
+            if marker_output_start is not None:
+                output = recorder.transcript[marker_output_start:]
+                for marker in pending_markers.copy():
+                    needle, label = marker
+                    if needle in output:
+                        recorder.event("m", label)
+                        pending_markers.remove(marker)
             return True
 
         def pump_for(duration: float) -> None:
@@ -211,6 +254,8 @@ def record(demo_name: str, output_path: Path) -> None:
                 pump(0.25)
 
             pump_for(2.0)
+            if demo.start_marker:
+                recorder.event("m", demo.start_marker)
             for character in prompt:
                 recorder.event("i", character)
                 os.write(fd, character.encode("utf-8"))
@@ -220,19 +265,22 @@ def record(demo_name: str, output_path: Path) -> None:
             pump_for(0.4)
             recorder.event("i", "\r")
             os.write(fd, b"\r")
+            marker_output_start = len(recorder.transcript)
+            if demo.submit_marker:
+                recorder.event("m", demo.submit_marker)
 
             response_start = len(recorder.transcript)
-            response_deadline = time.monotonic() + RESPONSE_TIMEOUT
+            response_deadline = time.monotonic() + demo.response_timeout
             last_output_at = time.monotonic()
             while True:
                 if pump(0.25):
                     last_output_at = time.monotonic()
                 response = recorder.transcript[response_start:]
-                complete = COMPLETION_MARKER in response
+                complete = demo.completion_marker in response
                 if complete and time.monotonic() - last_output_at >= 3.0:
                     break
                 if time.monotonic() >= response_deadline:
-                    raise TimeoutError(f"{demo_name} did not finish within {RESPONSE_TIMEOUT:g} seconds")
+                    raise TimeoutError(f"{demo_name} did not finish within {demo.response_timeout:g} seconds")
 
             recorder.event("o", "\x1b[0m")
             recorder.output(b"", final=True)

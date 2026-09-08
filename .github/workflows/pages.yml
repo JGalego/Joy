@@ -39,7 +39,7 @@ jobs:
           mkdir -p _site/assets _site/site
           cp index.html _site/index.html
           cp site/styles.css site/site.js _site/site/
-          cp assets/joy.svg assets/ownership.svg assets/claude.cast assets/copilot.cast _site/assets/
+          cp assets/joy.svg assets/ownership.svg assets/claude.cast assets/copilot.cast assets/case-study.cast _site/assets/
           touch _site/.nojekyll
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4

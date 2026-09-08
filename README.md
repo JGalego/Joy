@@ -59,7 +59,17 @@ It distinguishes meaningful challenge from incidental toil. It is not anti-AI, a
 
 </details>
 
-**Note:** These recordings run the local plugin in interactive CLI sessions. The GIF fallbacks come from [assets/claude.tape](assets/claude.tape) and [assets/copilot.tape](assets/copilot.tape) with [VHS](https://github.com/charmbracelet/vhs). The Joy site uses [assets/claude.cast](assets/claude.cast) and [assets/copilot.cast](assets/copilot.cast) with [asciinema-player](https://github.com/asciinema/asciinema-player), adding pause, seek, speed, fullscreen, and selectable text. Wording may vary when recordings are regenerated.
+### Extended case study: crash-safe webhook delivery
+
+The [annotated case study](https://jgalego.github.io/Joy/#case-study) follows a real, read-only Claude Code review of an executable webhook worker. The developer keeps the delivery guarantee, retry policy, and claim transition; Joy pairs on the send-before-ack crash invariant and delegates inspection and verification.
+
+The experience includes chaptered terminal playback, the protected implementation, deterministic fault-injection tests, a decision log, and an ownership receipt. The fixture is available in [examples/webhook_worker](examples/webhook_worker) and its proof runs without third-party packages:
+
+```sh
+python3 -m unittest discover -s examples/webhook_worker/tests -v
+```
+
+**Note:** These recordings run the local plugin in interactive CLI sessions. The GIF fallbacks come from [assets/claude.tape](assets/claude.tape) and [assets/copilot.tape](assets/copilot.tape) with [VHS](https://github.com/charmbracelet/vhs). The Joy site uses [assets/claude.cast](assets/claude.cast), [assets/copilot.cast](assets/copilot.cast), and [assets/case-study.cast](assets/case-study.cast) with [asciinema-player](https://github.com/asciinema/asciinema-player), adding pause, seek, speed, fullscreen, selectable text, and case-study chapters. Wording may vary when recordings are regenerated.
 
 ## 📦 Install
 
@@ -184,7 +194,9 @@ just validate  # dependency-free structural checks
 just check     # complete local publication suite
 just demo      # re-record the Claude Code GIF
 just demo-copilot # re-record the Copilot CLI GIF
-just cast      # re-record both interactive terminal casts
+just cast      # re-record the interactive terminal casts
+just cast-case-study # re-record the extended case study
+just case-study # run the executable case-study proof
 just site      # preview the Joy site locally
 just run       # launch the local plugin
 ```
@@ -204,7 +216,7 @@ vhs assets/copilot.tape
 
 Each tape opens an interactive session and writes [assets/claude.gif](assets/claude.gif) or [assets/copilot.gif](assets/copilot.gif). Re-recording uses model quota and may produce different wording.
 
-The interactive casts use the standard-library PTY recorder in [scripts/record_cast.py](scripts/record_cast.py), which types each prompt with visible keystroke pacing. Re-recording requires Python 3.9 or newer and an authenticated installation of the corresponding CLI. Run `just cast-claude` or `just cast-copilot` for a specific CLI, or `just cast` for both. Run `just site`, then open <http://localhost:4173/> to test the same landing page deployed by [the Pages workflow](.github/workflows/pages.yml).
+The interactive casts use the standard-library PTY recorder in [scripts/record_cast.py](scripts/record_cast.py), which types each prompt with visible keystroke pacing. Re-recording requires Python 3.9 or newer and an authenticated installation of the corresponding CLI. Run `just cast-claude`, `just cast-copilot`, or `just cast-case-study` for a specific recording, or `just cast` for the complete set. Run `just site`, then open <http://localhost:4173/> to test the same landing page deployed by [the Pages workflow](.github/workflows/pages.yml).
 
 When Claude Code is installed, also run its official validators:
 
@@ -215,7 +227,7 @@ claude plugin validate ./skills --strict
 
 Load the plugin locally with `claude --plugin-dir .`, then exercise the prompts in [skills/joy/evals/evals.json](skills/joy/evals/evals.json). Each fixture states intended outcomes and assertions rather than requiring exact wording. For meaningful comparison, run each case in a fresh session with Joy and without Joy, then record concrete evidence for every assertion. No paid API, credential, or fabricated benchmark is required by this repository.
 
-CI runs the same structural validator. It checks frontmatter, names, manifests, mode and command consistency, evaluation coverage, internal links, and common publication mistakes.
+CI runs the same structural validator and the executable case-study proof. It checks frontmatter, names, manifests, mode and command consistency, evaluation coverage, internal links, and common publication mistakes.
 
 Before publishing changes to the skill or plugin metadata, bump the semantic version in [.claude-plugin/plugin.json](.claude-plugin/plugin.json); Claude Code uses that explicit version to decide whether an installed plugin should update.
 

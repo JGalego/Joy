@@ -34,6 +34,7 @@
       <a href="#how-it-works">How it works</a>
       <a href="#modes">Modes</a>
       <a href="#demo">Demo</a>
+      <a href="#case-study">Case study</a>
       <a class="nav-github" href="https://github.com/JGalego/Joy">GitHub <span aria-hidden="true">↗</span></a>
       <a class="button button-small" href="#install">Install Joy</a>
     </nav>
@@ -216,6 +217,161 @@
           </a>
         </div>
       </div>
+    </section>
+
+    <section id="case-study" class="section case-study-section" aria-labelledby="case-study-title">
+      <div class="section-heading split-heading case-study-intro">
+        <div>
+          <p class="section-label">An end-to-end case study</p>
+          <h2 id="case-study-title">A crash window.<br><em>An intentional boundary.</em></h2>
+        </div>
+        <p>Follow a real Claude Code review of an executable webhook worker. The delivery semantics remain developer-owned while Joy pairs on the failure invariant and delegates verification.</p>
+      </div>
+
+      <div class="case-study-card">
+        <div class="case-study-header">
+          <div>
+            <span class="case-overline">Crash-safe webhook delivery</span>
+            <h3>What happens when delivery succeeds, then the worker crashes?</h3>
+          </div>
+          <div class="case-status"><span aria-hidden="true"></span> Executable fixture</div>
+        </div>
+
+        <div class="case-tabs" role="tablist" aria-label="Case-study artifacts">
+          <button id="case-tab-session" class="case-tab" type="button" role="tab" aria-controls="case-panel-session" aria-selected="true" tabindex="0" data-case-panel="session">Session</button>
+          <button id="case-tab-diff" class="case-tab" type="button" role="tab" aria-controls="case-panel-diff" aria-selected="false" tabindex="-1" data-case-panel="diff">Diff</button>
+          <button id="case-tab-tests" class="case-tab" type="button" role="tab" aria-controls="case-panel-tests" aria-selected="false" tabindex="-1" data-case-panel="tests">Tests</button>
+          <button id="case-tab-decisions" class="case-tab" type="button" role="tab" aria-controls="case-panel-decisions" aria-selected="false" tabindex="-1" data-case-panel="decisions">Decision log</button>
+        </div>
+
+        <div id="case-panel-session" class="case-panel" role="tabpanel" aria-labelledby="case-tab-session" data-case-content="session">
+          <div class="case-session-layout">
+            <aside class="ownership-rail" aria-labelledby="ownership-rail-title">
+              <div class="rail-heading">
+                <span>Live boundary</span>
+                <strong id="ownership-rail-title">Who owns what</strong>
+              </div>
+              <div class="rail-step rail-keep is-active" data-case-stage="0">
+                <span class="boundary-mark mark-keep" aria-hidden="true">◆</span>
+                <div><strong>Keep</strong><p>Guarantee, retry policy, claim transition</p></div>
+              </div>
+              <div class="rail-step rail-pair" data-case-stage="1">
+                <span class="boundary-mark mark-pair" aria-hidden="true">◇</span>
+                <div><strong>Pair</strong><p>Send-before-ack failure invariant</p></div>
+              </div>
+              <div class="rail-step rail-delegate" data-case-stage="2">
+                <span class="boundary-mark mark-delegate" aria-hidden="true">↗</span>
+                <div><strong>Delegate</strong><p>Inspection, tests, risk summary</p></div>
+              </div>
+              <p class="rail-note">The recording is read-only. Claude can inspect this fixture and run its proof, but cannot edit it.</p>
+            </aside>
+
+            <div class="case-recording">
+              <div class="case-chapters" aria-label="Recording chapters">
+                <span>Jump to</span>
+                <button class="case-chapter is-active" type="button" data-case-marker="0">Boundary</button>
+                <button class="case-chapter" type="button" data-case-marker="1">Invariant</button>
+                <button class="case-chapter" type="button" data-case-marker="2">Proof</button>
+              </div>
+              <div class="terminal-shell case-terminal">
+                <div class="terminal-titlebar" aria-hidden="true">
+                  <span class="window-dot dot-red"></span>
+                  <span class="window-dot dot-gold"></span>
+                  <span class="window-dot dot-green"></span>
+                  <span class="terminal-title">Joy · Claude Code · craft</span>
+                </div>
+                <div id="case-player" aria-label="Interactive crash-safe webhook case-study recording"></div>
+                <p id="case-player-status" class="visually-hidden" aria-live="polite"></p>
+                <noscript>
+                  <p class="player-fallback">JavaScript is required for interactive playback. <a href="assets/case-study.cast">Download the case-study recording</a>.</p>
+                </noscript>
+              </div>
+              <div class="case-recording-footer">
+                <p>Real CLI output, paced keystrokes, scoped read and test access, and embedded chapter markers.</p>
+                <a class="download-link" href="assets/case-study.cast" download>Download cast <span aria-hidden="true">↓</span></a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="case-panel-diff" class="case-panel artifact-panel" role="tabpanel" aria-labelledby="case-tab-diff" data-case-content="diff" hidden>
+          <div class="artifact-heading">
+            <div><span>Protected implementation</span><h3>The consequential lines stay visible.</h3></div>
+            <a href="https://github.com/JGalego/Joy/blob/main/examples/webhook_worker/worker.py">Open worker.py <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="diff-frame" aria-label="Key lines from the webhook worker">
+            <div class="diff-file"><span>examples/webhook_worker/worker.py</span><span>developer-owned core</span></div>
+            <pre><code><span class="diff-context">  claim = self._repository.claim_due(now=now, lease_seconds=self._policy.lease_seconds)</span>
+<span class="diff-add">+ self._transport.send(</span>
+<span class="diff-add">+     claim.endpoint,</span>
+<span class="diff-add">+     claim.payload,</span>
+<span class="diff-add">+     idempotency_key=claim.idempotency_key,</span>
+<span class="diff-add">+ )</span>
+<span class="diff-add">+ if crash_after_send:</span>
+<span class="diff-add">+     raise CrashAfterSend("delivery succeeded before its local acknowledgement")</span>
+<span class="diff-add">+ if not self._repository.mark_delivered(claim, now=now):</span>
+<span class="diff-add">+     raise LostLease(claim.delivery_id)</span></code></pre>
+          </div>
+          <p class="artifact-note"><strong>Why it matters:</strong> the remote effect and local acknowledgement cannot be atomic. The chosen contract permits redelivery with the same idempotency key rather than pretending exactly-once delivery exists.</p>
+        </div>
+
+        <div id="case-panel-tests" class="case-panel artifact-panel" role="tabpanel" aria-labelledby="case-tab-tests" data-case-content="tests" hidden>
+          <div class="artifact-heading">
+            <div><span>Deterministic fault injection</span><h3>Prove the uncomfortable boundary.</h3></div>
+            <a href="https://github.com/JGalego/Joy/blob/main/examples/webhook_worker/tests/test_worker.py">Open tests <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="test-layout">
+            <div class="test-list" aria-label="Verified behaviors">
+              <div><span class="test-pass" aria-label="passed">✓</span><p><strong>Crash after send</strong><span>Redelivers after lease expiry with the same key.</span></p></div>
+              <div><span class="test-pass" aria-label="passed">✓</span><p><strong>Transport failure</strong><span>Waits for exponential backoff before retrying.</span></p></div>
+              <div><span class="test-pass" aria-label="passed">✓</span><p><strong>Stale acknowledgement</strong><span>Cannot overwrite a newer claim generation.</span></p></div>
+            </div>
+            <div class="test-output">
+              <div><span aria-hidden="true"></span> condensed unittest proof</div>
+              <pre aria-label="Condensed unittest proof output"><code>test_crash_after_send_redelivers_with_one_receiver_effect ... ok
+test_stale_worker_cannot_acknowledge_a_newer_claim ... ok
+test_transport_failure_waits_for_backoff_before_retry ... ok
+
+Ran 3 tests
+
+OK</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div id="case-panel-decisions" class="case-panel artifact-panel" role="tabpanel" aria-labelledby="case-tab-decisions" data-case-content="decisions" hidden>
+          <div class="artifact-heading">
+            <div><span>Decision log</span><h3>The trade-offs are part of the artifact.</h3></div>
+            <a href="https://github.com/JGalego/Joy/blob/main/examples/webhook_worker/README.md">Read the rationale <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="decision-grid">
+            <article><span class="owner-tag owner-keep">Keep</span><h4>At-least-once delivery</h4><p>A successful remote effect may be repeated after a crash. The stable key is part of the contract.</p></article>
+            <article><span class="owner-tag owner-pair">Pair</span><h4>Attempts are generations</h4><p>A stale worker cannot acknowledge or reschedule work after a newer lease has been claimed.</p></article>
+            <article><span class="owner-tag owner-keep">Keep</span><h4>Retry forever—for now</h4><p>The example has no dead-letter policy. That omission remains an explicit product decision, not a hidden default.</p></article>
+            <article><span class="owner-tag owner-delegate">Delegate</span><h4>Verification plumbing</h4><p>SQLite persistence, a deduplicating fake receiver, fault injection, and the test harness support the chosen semantics.</p></article>
+          </div>
+        </div>
+      </div>
+
+      <aside class="ownership-receipt" aria-labelledby="receipt-title">
+        <div class="receipt-heading">
+          <span>Ownership receipt</span>
+          <h3 id="receipt-title">The work shipped without blurring authorship.</h3>
+        </div>
+        <div class="receipt-grid">
+          <div><span class="boundary-mark mark-keep" aria-hidden="true">◆</span><p><strong>Kept</strong><span>Delivery guarantee, retry semantics, and claim transition stayed unchanged.</span></p></div>
+          <div><span class="boundary-mark mark-pair" aria-hidden="true">◇</span><p><strong>Paired</strong><span>The crash timeline and stale-worker invariant were reviewed together.</span></p></div>
+          <div><span class="boundary-mark mark-delegate" aria-hidden="true">↗</span><p><strong>Delegated</strong><span>The fixture was inspected, its proof was run, and its limits were summarized.</span></p></div>
+        </div>
+        <div class="receipt-footer">
+          <code>python3 -m unittest discover -s examples/webhook_worker/tests -v</code>
+          <div>
+            <a href="https://github.com/JGalego/Joy/tree/main/examples/webhook_worker">Explore fixture <span aria-hidden="true">↗</span></a>
+            <a href="https://github.com/JGalego/Joy/commits/main/examples/webhook_worker">View history <span aria-hidden="true">↗</span></a>
+            <a href="https://github.com/JGalego/Joy/actions/workflows/ci.yml">View CI <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+      </aside>
     </section>
 
     <section id="install" class="section install-section" aria-labelledby="install-title">

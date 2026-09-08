@@ -51,7 +51,7 @@ function readJson(path) {
 function filesUnder(path) {
   if (!existsSync(path)) return [];
   return readdirSync(path, { withFileTypes: true }).flatMap((entry) => {
-    if (entry.name === ".git") return [];
+    if ([".git", "__pycache__"].includes(entry.name)) return [];
     const child = join(path, entry.name);
     return entry.isDirectory() ? filesUnder(child) : [child];
   });
@@ -88,10 +88,20 @@ const requiredFiles = [
   "assets/ownership.svg",
   "assets/claude.cast",
   "assets/copilot.cast",
+  "assets/case-study.cast",
   "assets/claude.gif",
   "assets/copilot.gif",
   "assets/claude.tape",
   "assets/copilot.tape",
+  "assets/case-study.tape",
+  "examples/__init__.py",
+  "examples/webhook_worker/__init__.py",
+  "examples/webhook_worker/model.py",
+  "examples/webhook_worker/repository.py",
+  "examples/webhook_worker/worker.py",
+  "examples/webhook_worker/tests/__init__.py",
+  "examples/webhook_worker/tests/test_worker.py",
+  "examples/webhook_worker/README.md",
   "index.html",
   "site/site.js",
   "site/styles.css",
@@ -176,7 +186,7 @@ for (const badge of ["Claude_Code-compatible", "GitHub_Copilot_CLI-compatible", 
 }
 check(masthead.includes("npx skills add JGalego/Joy --skill joy --agent claude-code --global --yes"), "README.md masthead must include the primary install command");
 
-for (const recipe of ["default", "validate", "validate-claude", "discover", "check", "demo", "demo-claude", "demo-copilot", "cast", "cast-claude", "cast-copilot", "site", "run"]) {
+for (const recipe of ["default", "validate", "validate-claude", "discover", "check", "demo", "demo-claude", "demo-copilot", "cast", "cast-claude", "cast-copilot", "cast-case-study", "case-study", "site", "run"]) {
   check(new RegExp(`^${recipe}:`, "m").test(justfile), `justfile is missing the ${recipe} recipe`);
 }
 
@@ -227,6 +237,7 @@ check(readme.includes('src="assets/ownership.svg"'), "README.md must display the
 
 const claudeTape = read(join(root, "assets", "claude.tape"));
 const copilotTape = read(join(root, "assets", "copilot.tape"));
+const caseStudyTape = read(join(root, "assets", "case-study.tape"));
 const claudeDemo = readBytes(join(root, "assets", "claude.gif"));
 const copilotDemo = readBytes(join(root, "assets", "copilot.gif"));
 check(["GIF87a", "GIF89a"].includes(claudeDemo.subarray(0, 6).toString("ascii")), "assets/claude.gif: expected a valid GIF header");
@@ -247,6 +258,12 @@ check(copilotTape.includes("--plugin-dir ."), "assets/copilot.tape must load the
 check(copilotTape.includes("--available-tools="), "assets/copilot.tape must prevent tools from changing the repository");
 check(copilotTape.includes("--session-id"), "assets/copilot.tape must isolate each recording session");
 check(!/(?:--allow-all|--yolo)\b/.test(copilotTape), "assets/copilot.tape must not bypass Copilot permissions");
+check(caseStudyTape.includes("Output assets/case-study.gif"), "assets/case-study.tape must target the case-study GIF");
+check(caseStudyTape.includes("/joy:joy craft"), "assets/case-study.tape must invoke Joy in craft mode");
+check(caseStudyTape.includes("--allowedTools"), "assets/case-study.tape must scope the case-study tools");
+check(caseStudyTape.includes("--disallowedTools"), "assets/case-study.tape must prevent fixture edits");
+check(caseStudyTape.includes("python3 -m unittest discover -s examples/webhook_worker/tests -v"), "assets/case-study.tape must run the executable proof");
+check(!caseStudyTape.includes("dangerously-skip-permissions"), "assets/case-study.tape must not bypass Claude Code permissions");
 check(readme.includes('src="assets/claude.gif"'), "README.md must display the Claude Code demo");
 check(readme.includes('src="assets/copilot.gif"'), "README.md must display the Copilot CLI demo");
 check(readme.includes("(assets/copilot.tape)"), "README.md must link the Copilot CLI tape");
@@ -313,20 +330,34 @@ function validateCast(filename, title, requiredText) {
     ? events.filter((event) => event[1] === "o" && event[0] >= promptInput[0][0] && event[0] <= promptInput.at(-1)[0] + 0.25)
     : [];
   check(typingRedraws.length >= 20, `assets/${filename}: terminal must visibly redraw while the prompt is typed`);
+  return { events, source };
 }
 
 validateCast("claude.cast", "Joy — Claude Code", "/joy:joy pair");
 validateCast("copilot.cast", "Joy — GitHub Copilot CLI", "Use the /joy skill in learn mode");
+const caseStudyRecording = validateCast("case-study.cast", "Joy — Crash-safe webhook worker", "/joy:joy craft");
+
+const caseStudyMarkers = caseStudyRecording.events
+  .filter((event) => event[1] === "m")
+  .map((event) => event[2]);
+for (const marker of ["Set the boundary", "Inspect the invariant", "Run the proof"]) {
+  check(caseStudyMarkers.includes(marker), `assets/case-study.cast must include the ${marker} chapter`);
+}
+for (const evidence of ["Ran 3 tests", "OK", "Verification", "Untouched"]) {
+  check(caseStudyRecording.source.includes(evidence), `assets/case-study.cast must show ${evidence}`);
+}
 
 for (const target of ["claude", "copilot"]) {
   const demoUrl = `https://jgalego.github.io/Joy/?demo=${target}#demo`;
   check(readme.includes(demoUrl), `README.md must link the ${target} demo to the Joy site`);
   check(siteScript.includes(`assets/${target}.cast`), `site/site.js must load assets/${target}.cast`);
 }
+check(readme.includes("https://jgalego.github.io/Joy/#case-study"), "README.md must link to the extended case study");
+check(siteScript.includes("assets/case-study.cast"), "site/site.js must load the case-study recording");
 check(readme.includes("https://jgalego.github.io/Joy/"), "README.md must link to the Joy site");
 check(siteHtml.includes("Keep the joy. Let go of the toil."), "index.html must lead with Joy's tagline");
 check(siteHtml.includes("Which part do you want to remain yours?"), "index.html must explain Joy's ownership question");
-for (const section of ["how-it-works", "modes", "demo", "install"]) {
+for (const section of ["how-it-works", "modes", "demo", "case-study", "install"]) {
   check(siteHtml.includes(`id="${section}"`), `index.html must include the ${section} section`);
 }
 for (const mode of modes) {
@@ -344,6 +375,12 @@ check(siteHtml.includes('http-equiv="Content-Security-Policy"'), "index.html mus
 check(!/<script(?![^>]*\bsrc=)[^>]*>/i.test(siteHtml), "index.html must not contain inline scripts");
 check(siteHtml.includes('class="skip-link"') && siteHtml.includes('id="main"'), "index.html must provide a skip link");
 check(siteHtml.includes('role="tablist"') && siteHtml.includes('role="tabpanel"'), "index.html must expose accessible demo tabs");
+for (const panel of ["session", "diff", "tests", "decisions"]) {
+  check(siteHtml.includes(`data-case-panel="${panel}"`) && siteHtml.includes(`data-case-content="${panel}"`), `index.html must expose the ${panel} case-study panel`);
+}
+for (const boundary of ["Keep", "Pair", "Delegate"]) {
+  check(siteHtml.includes(`<strong>${boundary}</strong>`), `index.html must show ${boundary} in the ownership rail`);
+}
 check(siteHtml.includes('id="speed"'), "index.html must provide a playback speed control");
 check(siteHtml.includes("npx skills add JGalego/Joy --skill joy --agent claude-code --global --yes"), "index.html must include the primary install command");
 for (const match of siteHtml.matchAll(/\b(?:href|src)="([^"]+)"/g)) {
@@ -357,6 +394,8 @@ check(siteScript.includes('controls: true'), "site/site.js must expose pause and
 check(siteScript.includes('fit: "width"'), "site/site.js must keep recordings responsive");
 check(siteScript.includes("speed,") && siteScript.includes("startAt,"), "site/site.js must preserve playback controls when speed changes");
 check(siteScript.includes("navigator.clipboard.writeText"), "site/site.js must make the install command copyable");
+check(siteScript.includes('casePlayer.addEventListener("marker"'), "site/site.js must synchronize the ownership rail with recording chapters");
+check(siteScript.includes("casePlayer.seek({ marker })"), "site/site.js must make case-study chapters seekable");
 
 for (const action of ["actions/checkout@v6", "actions/configure-pages@v5", "actions/upload-pages-artifact@v4", "actions/deploy-pages@v4"]) {
   check(pagesWorkflow.includes(action), `.github/workflows/pages.yml must use ${action}`);
@@ -365,8 +404,25 @@ check(pagesWorkflow.includes("pages: write"), ".github/workflows/pages.yml must 
 check(pagesWorkflow.includes("id-token: write"), ".github/workflows/pages.yml must grant OIDC access only to deployment");
 check(pagesWorkflow.includes("cp index.html _site/index.html"), ".github/workflows/pages.yml must publish the landing page at the site root");
 check(pagesWorkflow.includes("site/styles.css site/site.js"), ".github/workflows/pages.yml must publish the site assets");
-check(pagesWorkflow.includes("assets/joy.svg assets/ownership.svg assets/claude.cast assets/copilot.cast"), ".github/workflows/pages.yml must publish the visual and recording assets");
+check(pagesWorkflow.includes("assets/joy.svg assets/ownership.svg assets/claude.cast assets/copilot.cast assets/case-study.cast"), ".github/workflows/pages.yml must publish the visual and recording assets");
 check(pagesWorkflow.includes("path: _site"), ".github/workflows/pages.yml must upload only the staged site");
+
+const ciWorkflow = read(join(root, ".github", "workflows", "ci.yml"));
+check(ciWorkflow.includes("actions/setup-python@v5"), ".github/workflows/ci.yml must configure Python for the case-study proof");
+check(ciWorkflow.includes("python -m unittest discover -s examples/webhook_worker/tests -v"), ".github/workflows/ci.yml must run the case-study proof");
+
+const caseStudyReadme = read(join(root, "examples", "webhook_worker", "README.md"));
+const workerFixture = read(join(root, "examples", "webhook_worker", "worker.py"));
+const repositoryFixture = read(join(root, "examples", "webhook_worker", "repository.py"));
+const testFixture = read(join(root, "examples", "webhook_worker", "tests", "test_worker.py"));
+for (const boundary of ["**Keep:**", "**Pair:**", "**Delegate:**"]) {
+  check(caseStudyReadme.includes(boundary), `examples/webhook_worker/README.md must document ${boundary}`);
+}
+check(workerFixture.includes("crash_after_send"), "case-study worker must expose deterministic crash injection");
+check(repositoryFixture.includes("AND attempts = ?"), "case-study repository must reject stale claim generations");
+for (const behavior of ["test_crash_after_send", "test_transport_failure", "test_stale_worker"]) {
+  check(testFixture.includes(behavior), `case-study proof must cover ${behavior}`);
+}
 
 const evaluations = readJson(evalPath);
 if (evaluations) {
@@ -419,7 +475,7 @@ for (const path of allFiles.filter((file) => file.endsWith(".md"))) {
   }
 }
 
-const textExtensions = new Set([".cast", ".css", ".html", ".js", ".json", ".md", ".mjs", ".svg", ".tape", ".yml"]);
+const textExtensions = new Set([".cast", ".css", ".html", ".js", ".json", ".md", ".mjs", ".py", ".svg", ".tape", ".yml"]);
 const textFiles = allFiles.filter((path) => textExtensions.has(extname(path)) || path === justfilePath);
 const placeholderFragments = [
   "TO" + "DO",
