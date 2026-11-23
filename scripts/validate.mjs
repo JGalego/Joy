@@ -383,6 +383,10 @@ for (const boundary of ["Keep", "Pair", "Delegate"]) {
 }
 check(siteHtml.includes('id="speed"'), "index.html must provide a playback speed control");
 check(siteHtml.includes("npx skills add JGalego/Joy --skill joy --agent claude-code --global --yes"), "index.html must include the primary install command");
+for (const command of ["/plugin marketplace add JGalego/Joy", "/plugin install joy@joy"]) {
+  check(siteHtml.includes(`<code>${command}</code>`), `index.html must show the plugin command ${command}`);
+  check(readme.includes(command), `README.md must show the plugin command ${command}`);
+}
 for (const match of siteHtml.matchAll(/\b(?:href|src)="([^"]+)"/g)) {
   const target = match[1];
   if (/^(?:https?:|#)/.test(target)) continue;

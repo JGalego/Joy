@@ -1643,6 +1643,10 @@ main,
   overflow-wrap: anywhere;
 }
 
+.install-options code + code {
+  margin-top: 4px;
+}
+
 .closing-section {
   max-width: 850px;
   margin: 0 auto;
