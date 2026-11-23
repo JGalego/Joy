@@ -1,42 +1,202 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title description">
   <title id="title">The Joy ownership boundary</title>
-  <desc id="description">Three folded-paper cards show work the user keeps, work done together, and work intentionally released on an origami crane. A rail below shows that the boundary can move.</desc>
+  <desc id="description">Three folded-paper cards show work the user keeps, work done together, and work intentionally released on an origami crane. A folded marker glides along a rail beneath them, lighting up each card in turn, to show that the boundary can move.</desc>
+
+  <defs>
+    <linearGradient id="progress" gradientUnits="userSpaceOnUse" x1="208" y1="0" x2="992" y2="0">
+      <stop offset="0" stop-color="#d95f45"/>
+      <stop offset=".5" stop-color="#f5ba45"/>
+      <stop offset="1" stop-color="#d95f45"/>
+    </linearGradient>
+    <filter id="soft" x="-25%" y="-25%" width="150%" height="170%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+  </defs>
+
+  <style>
+    text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .title { fill: #5d3429; font-size: 23px; font-weight: 800; letter-spacing: 2px; }
+    .body { fill: #7e5b51; font-size: 17px; }
+    .caption { fill: #9a7468; font-size: 14px; font-weight: 700; letter-spacing: 2px; }
+
+    /* Static pose: what reduced-motion readers see. The marker rests on PAIR. */
+    .shadow, .outline, .flow { opacity: 0; }
+    .flow { stroke-dasharray: 2 7; }
+    .progress { stroke-dasharray: 784 900; stroke-dashoffset: 392; }
+    .marker { transform: translateX(392px); }
+    .ring { opacity: 0; }
+        .flap, .wing, .lens, .ring { transform-box: fill-box; transform-origin: center; }
+    .flap { transform-origin: 0% 50%; }
+    .wing { transform-origin: 50% 100%; }
+
+    @media (prefers-reduced-motion: no-preference) {
+      /* One 16s loop: Keep → Pair → Delegate → Pair → Keep. */
+      .rise { animation: rise .9s cubic-bezier(.2, .7, .2, 1) both; }
+      .rise.p { animation-delay: .12s; }
+      .rise.d { animation-delay: .24s; }
+      .fade { animation: rise .9s ease-out .5s both; }
+
+      .lift-k { animation: lift-k 16s ease-in-out infinite; }
+      .lift-p { animation: lift-p 16s ease-in-out infinite; }
+      .lift-d { animation: lift-d 16s ease-in-out infinite; }
+      .glow-k { animation: act-k 16s ease-in-out infinite; }
+      .glow-p { animation: act-p 16s ease-in-out infinite; }
+      .glow-d { animation: act-d 16s ease-in-out infinite; }
+
+      .marker { animation: travel 16s cubic-bezier(.65, 0, .35, 1) infinite; }
+      .progress { animation: fill 16s cubic-bezier(.65, 0, .35, 1) infinite; }
+      .halo { animation: halo 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+      .ring-k { animation: ring-k 16s ease-out infinite; }
+      .ring-p { animation: ring-p 16s ease-out infinite; }
+      .ring-d { animation: ring-d 16s ease-out infinite; }
+      .flow { animation: flow 1.1s linear infinite; }
+
+      .float { animation: float 5s ease-in-out infinite alternate; }
+      .float.p { animation-delay: -1.6s; }
+      .float.d { animation-delay: -3.1s; }
+      .flap { animation: fold 16s ease-in-out infinite; }
+      .slide-l { animation: slide-l 16s ease-in-out infinite; }
+      .slide-r { animation: slide-r 16s ease-in-out infinite; }
+      .lens { animation: lens 16s ease-in-out infinite; }
+      .crane { animation: launch 16s ease-in-out infinite; }
+      .wing { animation: flap 16s ease-in-out infinite; }
+    }
+
+    @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    @keyframes float { from { transform: translateY(-2px); } to { transform: translateY(2.5px); } }
+    @keyframes halo { 0%, 100% { transform: scale(.9); opacity: .16; } 50% { transform: scale(1.3); opacity: .3; } }
+    @keyframes flow { to { stroke-dashoffset: -18; } }
+
+    @keyframes travel {
+      0%, 11%   { transform: translateX(0) rotate(0deg); }
+      20%, 30%  { transform: translateX(392px) rotate(90deg); }
+      39%, 61%  { transform: translateX(784px) rotate(180deg); }
+      70%, 80%  { transform: translateX(392px) rotate(270deg); }
+      89%, 100% { transform: translateX(0) rotate(360deg); }
+    }
+    @keyframes fill {
+      0%, 11%   { stroke-dashoffset: 784; }
+      20%, 30%  { stroke-dashoffset: 392; }
+      39%, 61%  { stroke-dashoffset: 0; }
+      70%, 80%  { stroke-dashoffset: 392; }
+      89%, 100% { stroke-dashoffset: 784; }
+    }
+
+    @keyframes lift-k { 0%, 11% { transform: translateY(-7px); } 16%, 84% { transform: translateY(0); } 89%, 100% { transform: translateY(-7px); } }
+    @keyframes lift-p { 0%, 14% { transform: translateY(0); } 20%, 30% { transform: translateY(-7px); } 35%, 65% { transform: translateY(0); } 70%, 80% { transform: translateY(-7px); } 86%, 100% { transform: translateY(0); } }
+    @keyframes lift-d { 0%, 34% { transform: translateY(0); } 39%, 61% { transform: translateY(-7px); } 66%, 100% { transform: translateY(0); } }
+    @keyframes act-k { 0%, 11% { opacity: 1; } 16%, 84% { opacity: 0; } 89%, 100% { opacity: 1; } }
+    @keyframes act-p { 0%, 14% { opacity: 0; } 20%, 30% { opacity: 1; } 35%, 65% { opacity: 0; } 70%, 80% { opacity: 1; } 86%, 100% { opacity: 0; } }
+    @keyframes act-d { 0%, 34% { opacity: 0; } 39%, 61% { opacity: 1; } 66%, 100% { opacity: 0; } }
+
+    @keyframes ring-k { 0%, 88% { opacity: 0; transform: scale(1); } 89% { opacity: .55; transform: scale(1); } 97%, 100% { opacity: 0; transform: scale(2.8); } }
+    @keyframes ring-p { 0%, 19% { opacity: 0; transform: scale(1); } 20% { opacity: .55; transform: scale(1); } 28% { opacity: 0; transform: scale(2.8); } 69% { opacity: 0; transform: scale(1); } 70% { opacity: .55; transform: scale(1); } 78%, 100% { opacity: 0; transform: scale(2.8); } }
+    @keyframes ring-d { 0%, 38% { opacity: 0; transform: scale(1); } 39% { opacity: .55; transform: scale(1); } 47%, 100% { opacity: 0; transform: scale(2.8); } }
+
+    @keyframes fold { 0%, 3% { transform: scaleX(1); } 6% { transform: scaleX(.18); } 9%, 91% { transform: scaleX(1); } 94% { transform: scaleX(.18); } 97%, 100% { transform: scaleX(1); } }
+    @keyframes slide-l { 0%, 18% { transform: translateX(0); } 23%, 27% { transform: translateX(6px); } 32%, 68% { transform: translateX(0); } 73%, 77% { transform: translateX(6px); } 82%, 100% { transform: translateX(0); } }
+    @keyframes slide-r { 0%, 18% { transform: translateX(0); } 23%, 27% { transform: translateX(-6px); } 32%, 68% { transform: translateX(0); } 73%, 77% { transform: translateX(-6px); } 82%, 100% { transform: translateX(0); } }
+    @keyframes lens { 0%, 18% { transform: scale(1); } 23%, 27% { transform: scale(1.75); } 32%, 68% { transform: scale(1); } 73%, 77% { transform: scale(1.75); } 82%, 100% { transform: scale(1); } }
+    @keyframes launch {
+      0%, 38% { transform: translate(0, 0) rotate(0deg); }
+      45% { transform: translate(8px, -9px) rotate(-7deg); }
+      52% { transform: translate(-1px, -3px) rotate(2deg); }
+      58% { transform: translate(8px, -9px) rotate(-7deg); }
+      65%, 100% { transform: translate(0, 0) rotate(0deg); }
+    }
+    @keyframes flap { 0%, 40% { transform: scaleY(1); } 43% { transform: scaleY(.7); } 46% { transform: scaleY(1); } 49% { transform: scaleY(.7); } 52% { transform: scaleY(1); } 55% { transform: scaleY(.7); } 58%, 100% { transform: scaleY(1); } }
+  </style>
+
   <rect width="1200" height="360" rx="40" fill="#ffffff"/>
 
+  <!-- KEEP -->
   <g transform="translate(24 28)">
-    <rect width="368" height="196" rx="24" fill="#fff8f2" stroke="#f2d7ca" stroke-width="2"/>
-    <path d="M0 24A24 24 0 0 1 24 0h70L0 94Z" fill="#d95f45"/>
-    <path d="m42 70 29-29 29 29-29 29Z" fill="#ffffff"/>
-    <path d="m71 41 29 29-29 8Z" fill="#f5ba45"/>
-    <text x="144" y="76" fill="#5d3429" font-family="ui-sans-serif, system-ui, sans-serif" font-size="23" font-weight="800" letter-spacing="2">KEEP</text>
-    <text x="144" y="111" fill="#7e5b51" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17">Your judgment, craft,</text>
-    <text x="144" y="138" fill="#7e5b51" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17">and discovery</text>
+    <g class="rise"><g class="lift-k">
+      <rect class="shadow glow-k" x="14" y="20" width="340" height="190" rx="24" fill="#d95f45" filter="url(#soft)" fill-opacity=".3"/>
+      <rect width="368" height="196" rx="24" fill="#fff8f2" stroke="#f2d7ca" stroke-width="2"/>
+      <rect class="outline glow-k" x="1" y="1" width="366" height="194" rx="23" fill="none" stroke="#d95f45" stroke-width="2.5"/>
+      <path d="M0 24A24 24 0 0 1 24 0h70L0 94Z" fill="#d95f45"/>
+      <path d="M94 0 0 94V50Z" fill="#ffffff" fill-opacity=".16"/>
+      <circle cx="76" cy="106" r="42" fill="#fde5d9"/>
+      <g transform="translate(76 106)"><g class="float">
+        <path d="M0-26 26 0 0 26-26 0Z" fill="#d95f45"/>
+        <path d="M0-26-26 0 0 7Z" fill="#e9805f"/>
+        <path d="M0 7 26 0 0 26Z" fill="#b84a34"/>
+        <path class="flap" d="M0-26 26 0 0 7Z" fill="#f5ba45"/>
+      </g></g>
+      <text x="144" y="76" class="title">KEEP</text>
+      <text x="144" y="111" class="body">Your judgment, craft,</text>
+      <text x="144" y="138" class="body">and discovery</text>
+    </g></g>
   </g>
 
+  <!-- PAIR -->
   <g transform="translate(416 28)">
-    <rect width="368" height="196" rx="24" fill="#fffaf0" stroke="#f1dca8" stroke-width="2"/>
-    <path d="M0 24A24 24 0 0 1 24 0h70L0 94Z" fill="#f5ba45"/>
-    <path d="m33 69 25-25 25 25-25 25Z" fill="#ffffff"/>
-    <path d="m58 69 25-25 25 25-25 25Z" fill="#d95f45" fill-opacity=".88"/>
-    <text x="144" y="76" fill="#5d3429" font-family="ui-sans-serif, system-ui, sans-serif" font-size="23" font-weight="800" letter-spacing="2">PAIR</text>
-    <text x="144" y="111" fill="#7e5b51" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17">Shared reasoning,</text>
-    <text x="144" y="138" fill="#7e5b51" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17">small steps</text>
+    <g class="rise p"><g class="lift-p">
+      <rect class="shadow glow-p" x="14" y="20" width="340" height="190" rx="24" fill="#f5ba45" filter="url(#soft)" fill-opacity=".4"/>
+      <rect width="368" height="196" rx="24" fill="#fffaf0" stroke="#f1dca8" stroke-width="2"/>
+      <rect class="outline glow-p" x="1" y="1" width="366" height="194" rx="23" fill="none" stroke="#e9a52a" stroke-width="2.5"/>
+      <path d="M0 24A24 24 0 0 1 24 0h70L0 94Z" fill="#f5ba45"/>
+      <path d="M94 0 0 94V50Z" fill="#ffffff" fill-opacity=".22"/>
+      <circle cx="76" cy="106" r="42" fill="#fdecbd"/>
+      <g transform="translate(76 106)"><g class="float p">
+        <g class="slide-l"><path d="M-14-22 8 0-14 22-36 0Z" fill="#f5ba45"/></g>
+        <g class="slide-r"><path d="M14-22 36 0 14 22-8 0Z" fill="#d95f45" fill-opacity=".92"/></g>
+        <path class="lens" d="M0-8 8 0 0 8-8 0Z" fill="#ffffff"/>
+      </g></g>
+      <text x="144" y="76" class="title">PAIR</text>
+      <text x="144" y="111" class="body">Shared reasoning,</text>
+      <text x="144" y="138" class="body">small steps</text>
+    </g></g>
   </g>
 
+  <!-- DELEGATE -->
   <g transform="translate(808 28)">
-    <rect width="368" height="196" rx="24" fill="#fff8f2" stroke="#f2d7ca" stroke-width="2"/>
-    <path d="M0 24A24 24 0 0 1 24 0h70L0 94Z" fill="#d95f45"/>
-    <path d="m27 77 28-31 16 16 38-23-21 39 22 17-37-10-21 17 4-28Z" fill="#ffffff"/>
-    <path d="m55 46 16 16-15 12Zm16 16 38-23-21 39Z" fill="#f5ba45"/>
-    <text x="144" y="76" fill="#5d3429" font-family="ui-sans-serif, system-ui, sans-serif" font-size="23" font-weight="800" letter-spacing="2">DELEGATE</text>
-    <text x="144" y="111" fill="#7e5b51" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17">Execution you choose</text>
-    <text x="144" y="138" fill="#7e5b51" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17">to hand off</text>
+    <g class="rise d"><g class="lift-d">
+      <rect class="shadow glow-d" x="14" y="20" width="340" height="190" rx="24" fill="#d95f45" filter="url(#soft)" fill-opacity=".3"/>
+      <rect width="368" height="196" rx="24" fill="#fff8f2" stroke="#f2d7ca" stroke-width="2"/>
+      <rect class="outline glow-d" x="1" y="1" width="366" height="194" rx="23" fill="none" stroke="#d95f45" stroke-width="2.5"/>
+      <path d="M0 24A24 24 0 0 1 24 0h70L0 94Z" fill="#d95f45"/>
+      <path d="M94 0 0 94V50Z" fill="#ffffff" fill-opacity=".16"/>
+      <circle cx="76" cy="106" r="42" fill="#fde5d9"/>
+      <g transform="translate(76 106)"><g class="float d"><g class="crane">
+        <g transform="scale(.78) translate(-68 -67)">
+          <path d="m27 77 28-31 16 16 38-23-21 39 22 17-37-10-21 17 4-28Z" fill="#d95f45"/>
+          <path d="m27 77 28-31 16 16-15 12Z" fill="#e9805f"/>
+          <path d="m71 62 38-23-21 39 22 17-37-10Z" fill="#b84a34"/>
+          <path class="wing" d="m55 46 16 16-15 12Zm16 16 38-23-21 39Z" fill="#f5ba45"/>
+        </g>
+      </g></g></g>
+      <text x="144" y="76" class="title">DELEGATE</text>
+      <text x="144" y="111" class="body">Execution you choose</text>
+      <text x="144" y="138" class="body">to hand off</text>
+    </g></g>
   </g>
 
-  <path d="M208 274H992" fill="none" stroke="#efd9cf" stroke-width="8" stroke-linecap="round"/>
-  <circle cx="208" cy="274" r="10" fill="#d95f45"/>
-  <circle cx="992" cy="274" r="10" fill="#f5ba45"/>
-  <path d="m600 258 16 16-16 16-16-16Z" fill="#d95f45"/>
-  <path d="m600 258 16 16-16 3Z" fill="#f5ba45"/>
-  <text x="600" y="326" fill="#9a7468" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" font-weight="700" letter-spacing="2" text-anchor="middle">THE BOUNDARY MOVES WITH YOU</text>
+  <!-- Rail -->
+  <g class="fade">
+    <path d="M208 228V264M600 228V264M992 228V264" fill="none" stroke="#efd9cf" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/>
+    <path class="flow glow-k" d="M208 228V264" fill="none" stroke="#d95f45" stroke-width="3" stroke-linecap="round"/>
+    <path class="flow glow-p" d="M600 228V264" fill="none" stroke="#e9a52a" stroke-width="3" stroke-linecap="round"/>
+    <path class="flow glow-d" d="M992 228V264" fill="none" stroke="#d95f45" stroke-width="3" stroke-linecap="round"/>
+
+    <path d="M208 274H992" fill="none" stroke="#efd9cf" stroke-width="8" stroke-linecap="round"/>
+    <path class="progress" d="M208 274H992" fill="none" stroke="url(#progress)" stroke-width="8" stroke-linecap="round"/>
+
+    <circle cx="208" cy="274" r="10" fill="#d95f45"/>
+    <circle cx="600" cy="274" r="9" fill="#ffffff" stroke="#f5ba45" stroke-width="4"/>
+    <circle cx="992" cy="274" r="10" fill="#d95f45"/>
+    <circle class="ring ring-k" cx="208" cy="274" r="10" fill="none" stroke="#d95f45" stroke-width="3"/>
+    <circle class="ring ring-p" cx="600" cy="274" r="10" fill="none" stroke="#e9a52a" stroke-width="3"/>
+    <circle class="ring ring-d" cx="992" cy="274" r="10" fill="none" stroke="#d95f45" stroke-width="3"/>
+
+    <g transform="translate(208 274)"><g class="marker">
+      <circle class="halo" r="26" fill="#f5ba45" opacity=".22"/>
+      <path d="M0-17 17 0 0 17-17 0Z" fill="#d95f45"/>
+      <path d="M0-17 17 0 0 3Z" fill="#f5ba45"/>
+      <path d="M0 3 17 0 0 17Z" fill="#b84a34"/>
+    </g></g>
+
+    <text x="600" y="326" class="caption" text-anchor="middle">THE BOUNDARY MOVES WITH YOU</text>
+  </g>
 </svg>
