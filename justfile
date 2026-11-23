@@ -43,11 +43,11 @@ cast-claude:
 cast-copilot:
     export GH_TOKEN="$(gh auth token)" && python3 scripts/record_cast.py copilot assets/copilot.cast
 
-# Record the extended, chaptered Claude Code case study.
+# Record the Claude Code webhook review.
 cast-case-study:
     python3 scripts/record_cast.py case-study assets/case-study.cast
 
-# Run the executable proof used by the case study.
+# Run the case-study tests.
 case-study:
     python3 -m unittest discover -s examples/webhook_worker/tests -v
 

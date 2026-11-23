@@ -21,14 +21,14 @@ Set WaitTimeout 120s
 Hide
 Type `unset CLAUDE_CODE_SSE_PORT TERM_PROGRAM TERM_PROGRAM_VERSION; export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1`
 Enter
-Type 'stty -echo; clear; claude --plugin-dir . --setting-sources project --no-chrome --effort medium --permission-mode dontAsk --allowedTools "Read,Glob,Grep,Bash(python3 -m unittest discover -s examples/webhook_worker/tests -v)" --disallowedTools "Edit,Write,NotebookEdit,WebFetch,WebSearch,Task"; stty echo'
+Type 'stty -echo; clear; claude --plugin-dir . --setting-sources project --no-chrome --model sonnet --effort medium --permission-mode dontAsk --allowedTools "Read,Glob,Grep,Bash(python3 -m unittest discover -s examples/webhook_worker/tests -v)" --disallowedTools "Edit,Write,NotebookEdit,WebFetch,WebSearch,Task"; stty echo'
 Enter
 Wait+Screen@60s /Sonnet 5/
 Show
 
 Sleep 3s
-Type "/joy:joy craft Review the crash-safe webhook worker in examples/webhook_worker. Keep the at-least-once guarantee, retry policy, and claim transition developer-owned. Pair on the send-before-ack crash invariant. Delegate verification: inspect only that fixture and run exactly python3 -m unittest discover -s examples/webhook_worker/tests -v; do not edit files. End with concise headings Keep, Pair, Delegate, Invariant, Verification, and say what remained untouched."
+Type "/joy craft Review the crash-safe webhook worker in examples/webhook_worker. Keep the at-least-once guarantee, retry policy, and claim transition developer-owned. Pair on the send-before-ack crash invariant. Delegate verification: inspect only that fixture and run exactly python3 -m unittest discover -s examples/webhook_worker/tests -v; do not edit files. End with concise headings Keep, Pair, Delegate, Invariant, Verification, and say what remained untouched."
 Sleep 500ms
 Enter
-Wait+Screen@120s /Ran 3 tests/
+Wait+Screen@120s /Ran [0-9]+ tests/
 Sleep 5s

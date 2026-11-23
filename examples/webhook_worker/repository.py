@@ -28,6 +28,13 @@ class SqliteDeliveryRepository:
     """Store and lease deliveries without holding a transaction during I/O."""
 
     def __init__(self, connection: sqlite3.Connection) -> None:
+        # claim_due opens its own BEGIN IMMEDIATE, which fails on a connection that
+        # always holds an open transaction (Python 3.12+ autocommit=False).
+        if getattr(connection, "autocommit", None) is False:
+            raise ValueError(
+                "SqliteDeliveryRepository manages its own transactions; "
+                "open the connection with isolation_level=None instead of autocommit=False"
+            )
         self._connection = connection
         self._connection.row_factory = sqlite3.Row
 

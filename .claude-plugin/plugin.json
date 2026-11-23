@@ -1,7 +1,7 @@
 {
   "name": "joy",
   "displayName": "Joy",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A KonMari-inspired skill for choosing what to Keep, Pair on, and Delegate while programming with AI.",
   "author": {
     "name": "Joy contributors"

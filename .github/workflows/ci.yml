@@ -20,5 +20,5 @@ jobs:
           python-version: "3.12"
       - name: Validate repository
         run: node scripts/validate.mjs
-      - name: Run case-study proof
+      - name: Run case-study tests
         run: python -m unittest discover -s examples/webhook_worker/tests -v

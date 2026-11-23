@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import codecs
+import errno
 import fcntl
 import json
 import os
@@ -27,23 +28,31 @@ ROWS = 38
 IDLE_LIMIT = 2.0
 READY_TIMEOUT = 60.0
 RESPONSE_TIMEOUT = 120.0
+STOP_TIMEOUT = 5.0
 TYPING_DELAY = 0.014
 PROMPT_PATTERN = re.compile(r'^Type "(.+)"$', re.MULTILINE)
 UUID_PATTERN = re.compile(
     r"\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b",
     re.IGNORECASE,
 )
+ANSI_PATTERN = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07]*\x07")
+# Larger than one PTY read, so a marker can never fall outside the searched text.
+MARKER_WINDOW = 70_000
+
+
+class ChildExited(RuntimeError):
+    """The recorded CLI closed its terminal before the recording finished."""
 
 
 @dataclass(frozen=True)
 class Demo:
     title: str
     tape: str
-    ready_text: str
+    ready_text: str  # regular expression, matched against visible output
     command: tuple[str, ...]
     environment: dict[str, str]
     unset_environment: tuple[str, ...]
-    completion_marker: str = "Delegate:"
+    completion_marker: str = "Delegate:"  # regular expression, matched against visible output
     start_marker: str = ""
     submit_marker: str = ""
     output_markers: tuple[tuple[str, str], ...] = ()
@@ -54,7 +63,7 @@ DEMOS = {
     "claude": Demo(
         title="Joy — Claude Code",
         tape="assets/claude.tape",
-        ready_text="Sonnet",
+        ready_text=r"Claude\s*Code\s*v\d",
         command=(
             "claude",
             "--plugin-dir",
@@ -62,13 +71,15 @@ DEMOS = {
             "--setting-sources",
             "project",
             "--no-chrome",
+            "--model",
+            "sonnet",
             "--effort",
             "low",
             "--disallowedTools",
             "Bash,Edit,Write,NotebookEdit,Read,Glob,Grep,Task,WebFetch,WebSearch",
         ),
         environment={"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"},
-        unset_environment=("CLAUDE_CODE_SSE_PORT", "TERM_PROGRAM", "TERM_PROGRAM_VERSION"),
+        unset_environment=("TERM_PROGRAM", "TERM_PROGRAM_VERSION"),
     ),
     "copilot": Demo(
         title="Joy — GitHub Copilot CLI",
@@ -94,7 +105,7 @@ DEMOS = {
     "case-study": Demo(
         title="Joy — Crash-safe webhook worker",
         tape="assets/case-study.tape",
-        ready_text="Sonnet",
+        ready_text=r"Claude\s*Code\s*v\d",
         command=(
             "claude",
             "--plugin-dir",
@@ -102,6 +113,8 @@ DEMOS = {
             "--setting-sources",
             "project",
             "--no-chrome",
+            "--model",
+            "sonnet",
             "--effort",
             "medium",
             "--permission-mode",
@@ -112,12 +125,13 @@ DEMOS = {
             "Edit,Write,NotebookEdit,WebFetch,WebSearch,Task",
         ),
         environment={"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"},
-        unset_environment=("CLAUDE_CODE_SSE_PORT", "TERM_PROGRAM", "TERM_PROGRAM_VERSION"),
-        completion_marker="Ran 3 tests",
+        unset_environment=("TERM_PROGRAM", "TERM_PROGRAM_VERSION"),
+        # The test command, then quiet: the model's own summary wording is not reliable.
+        completion_marker=r"Bash\(python3",
         start_marker="Set the boundary",
         submit_marker="Inspect the invariant",
         output_markers=(
-            ("Ran 3 tests", "Run the proof"),
+            ("Bash(python3", "Run the proof"),
         ),
         response_timeout=180.0,
     ),
@@ -132,7 +146,13 @@ def prompt_from_tape(path: Path) -> str:
 
 
 def child_environment(demo: Demo) -> dict[str, str]:
-    environment = os.environ.copy()
+    # Drop the session variables a parent Claude Code exports (CLAUDECODE, CLAUDE_CODE_*):
+    # a CLI that inherits them runs as a child session and never draws its interface.
+    environment = {
+        name: value
+        for name, value in os.environ.items()
+        if name == "CLAUDE_CONFIG_DIR" or not name.startswith("CLAUDE")
+    }
     environment.update(demo.environment)
     environment.update({"COLUMNS": str(COLS), "LINES": str(ROWS), "TERM": "xterm-256color"})
     for name in demo.unset_environment:
@@ -181,9 +201,16 @@ def stop_child(pid: int, fd: int) -> None:
         os.close(fd)
     except OSError:
         pass
+    # Claude Code can outlive SIGTERM and the closed terminal; do not wait forever.
+    deadline = time.monotonic() + STOP_TIMEOUT
     try:
-        os.waitpid(pid, 0)
-    except ChildProcessError:
+        while os.waitpid(pid, os.WNOHANG)[0] == 0:
+            if time.monotonic() >= deadline:
+                os.kill(pid, signal.SIGKILL)
+                os.waitpid(pid, 0)
+                return
+            time.sleep(0.1)
+    except (ChildProcessError, ProcessLookupError):
         pass
 
 
@@ -221,19 +248,32 @@ def record(demo_name: str, output_path: Path) -> None:
         marker_output_start: int | None = None
         pending_markers = list(demo.output_markers)
 
+        def visible_since(start: int) -> str:
+            # Match on visible text: the CLIs interleave styling and cursor codes with words.
+            window_start = max(start, len(recorder.transcript) - MARKER_WINDOW)
+            return ANSI_PATTERN.sub("", recorder.transcript[window_start:])
+
+        def child_exited() -> ChildExited:
+            visible = ANSI_PATTERN.sub("", recorder.transcript).strip()
+            last_line = visible.splitlines()[-1] if visible else "no output"
+            return ChildExited(f"{command[0]} exited before the {demo_name} recording finished: {last_line}")
+
         def pump(timeout: float) -> bool:
             readable, _, _ = select.select([fd], [], [], timeout)
             if not readable:
                 return False
             try:
                 data = os.read(fd, 65_536)
-            except OSError:
-                return False
+            except OSError as error:
+                # Linux reports a closed terminal as EIO; other platforms return no data.
+                if error.errno == errno.EIO:
+                    raise child_exited() from None
+                raise
             if not data:
-                return False
+                raise child_exited()
             recorder.output(data)
             if marker_output_start is not None:
-                output = recorder.transcript[marker_output_start:]
+                output = visible_since(marker_output_start)
                 for marker in pending_markers.copy():
                     needle, label = marker
                     if needle in output:
@@ -248,7 +288,7 @@ def record(demo_name: str, output_path: Path) -> None:
 
         try:
             ready_deadline = time.monotonic() + READY_TIMEOUT
-            while demo.ready_text not in recorder.transcript:
+            while re.search(demo.ready_text, visible_since(0)) is None:
                 if time.monotonic() >= ready_deadline:
                     raise TimeoutError(f"{demo_name} did not become ready within {READY_TIMEOUT:g} seconds")
                 pump(0.25)
@@ -272,11 +312,11 @@ def record(demo_name: str, output_path: Path) -> None:
             response_start = len(recorder.transcript)
             response_deadline = time.monotonic() + demo.response_timeout
             last_output_at = time.monotonic()
+            complete = False
             while True:
                 if pump(0.25):
                     last_output_at = time.monotonic()
-                response = recorder.transcript[response_start:]
-                complete = demo.completion_marker in response
+                    complete = complete or re.search(demo.completion_marker, visible_since(response_start)) is not None
                 if complete and time.monotonic() - last_output_at >= 3.0:
                     break
                 if time.monotonic() >= response_deadline:

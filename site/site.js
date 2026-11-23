@@ -1,13 +1,13 @@
 const demos = {
   claude: {
     cast: "assets/claude.cast",
-    description: "Joy pairs on Unicode edge cases while keeping the core slugify algorithm with the user.",
+    description: "The user keeps the slugify algorithm; Joy reviews Unicode edge cases and supplies a test.",
     mode: "pair",
     title: "Claude Code"
   },
   copilot: {
     cast: "assets/copilot.cast",
-    description: "Joy offers a graduated hint and a focused test while the user keeps the binary-search diagnosis and fix.",
+    description: "The user keeps the binary-search diagnosis and fix; Joy offers a hint and a test.",
     mode: "learn",
     title: "GitHub Copilot CLI"
   }
@@ -30,6 +30,7 @@ const query = new URLSearchParams(window.location.search);
 
 let activeDemo = Object.hasOwn(demos, query.get("demo")) ? query.get("demo") : "claude";
 let player;
+let playerIsPlaying = false;
 let casePlayer;
 
 function castUrl(path) {
@@ -76,6 +77,7 @@ function renderPlayer({ autoPlay = false, startAt = 0 } = {}) {
   setDemoState(activeDemo);
   player?.dispose();
   player = undefined;
+  playerIsPlaying = false;
   playerElement.replaceChildren();
 
   if (!window.AsciinemaPlayer) {
@@ -89,13 +91,16 @@ function renderPlayer({ autoPlay = false, startAt = 0 } = {}) {
       controls: true,
       fit: "width",
       idleTimeLimit: 2,
-      poster: autoPlay ? undefined : "npt:1",
+      poster: autoPlay ? undefined : `npt:${startAt || 1}`,
       preload: true,
       speed,
       startAt,
       terminalFontSize: "small",
       theme: "asciinema"
     });
+    player.addEventListener("playing", () => { playerIsPlaying = true; });
+    player.addEventListener("pause", () => { playerIsPlaying = false; });
+    player.addEventListener("ended", () => { playerIsPlaying = false; });
   } catch {
     showFallback(demo);
   }
@@ -228,8 +233,10 @@ for (const chapter of caseChapters) {
 }
 
 speedSelect.addEventListener("change", async () => {
+  // Rebuilding the player is the only way to change speed; keep its position and play state.
+  const wasPlaying = playerIsPlaying;
   const currentTime = await player?.getCurrentTime?.();
-  renderPlayer({ autoPlay: Boolean(currentTime), startAt: currentTime || 0 });
+  renderPlayer({ autoPlay: wasPlaying, startAt: currentTime || 0 });
 });
 
 const copyButton = document.querySelector("[data-copy-target]");

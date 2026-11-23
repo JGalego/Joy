@@ -1,8 +1,9 @@
-"""Executable proof for the webhook worker's failure boundaries."""
+"""Tests for webhook delivery, retry timing, and stale claims."""
 
 from __future__ import annotations
 
 import sqlite3
+import sys
 import unittest
 
 from examples.webhook_worker import (
@@ -76,6 +77,32 @@ class WebhookWorkerTests(unittest.TestCase):
         self.assertEqual(worker.run_once(now=101), RunResult.IDLE)
         self.assertEqual(worker.run_once(now=102), RunResult.DELIVERED)
         self.assertEqual(transport.effects, ['{"order_id":42}'])
+
+    def test_backoff_doubles_until_the_cap(self) -> None:
+        delays = [self.policy.next_retry_at(100, attempt) - 100 for attempt in range(1, 6)]
+
+        self.assertEqual(delays, [2, 4, 8, 8, 8])
+
+    def test_retry_stays_capped_after_a_long_outage(self) -> None:
+        self.enqueue()
+        self.connection.execute("UPDATE deliveries SET attempts = 5000")
+        transport = DeduplicatingTransport(failures=1)
+        # Float settings, like the defaults: integer settings never overflow.
+        policy = DeliveryPolicy(lease_seconds=5.0, retry_base_seconds=2.0, retry_cap_seconds=8.0)
+        worker = WebhookWorker(self.repository, transport, policy)
+
+        self.assertEqual(worker.run_once(now=100), RunResult.RETRY_SCHEDULED)
+        self.assertEqual(self.repository.state("delivery-1"), "pending")
+        self.assertEqual(worker.run_once(now=107), RunResult.IDLE)
+        self.assertEqual(worker.run_once(now=108), RunResult.DELIVERED)
+
+    @unittest.skipUnless(sys.version_info >= (3, 12), "autocommit was added in Python 3.12")
+    def test_repository_rejects_a_connection_that_holds_a_transaction(self) -> None:
+        connection = sqlite3.connect(":memory:", autocommit=False)
+        self.addCleanup(connection.close)
+
+        with self.assertRaisesRegex(ValueError, "isolation_level=None"):
+            SqliteDeliveryRepository(connection)
 
     def test_stale_worker_cannot_acknowledge_a_newer_claim(self) -> None:
         self.enqueue()

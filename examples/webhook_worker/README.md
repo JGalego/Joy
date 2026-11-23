@@ -1,12 +1,12 @@
 # Crash-safe webhook worker
 
-This fixture makes the Joy case study executable. It models the failure window where a remote webhook succeeds but the worker crashes before recording the local acknowledgement.
+This fixture models a webhook send that succeeds just before the worker crashes, leaving no local acknowledgement.
 
 ## Ownership boundary
 
 - **Keep:** the at-least-once guarantee, stable idempotency key, lease duration, and retry policy.
 - **Pair:** the claim-generation invariant and the send-before-ack crash timeline.
-- **Delegate:** SQLite plumbing, deterministic fault injection, tests, and this explanation.
+- **Delegate:** SQLite storage, fault injection, and tests.
 
 ## Invariant
 
@@ -14,9 +14,9 @@ A claim increments `attempts`, which also acts as its generation. A worker may a
 
 The send and local acknowledgement cannot be atomic. A crash between them therefore causes intentional redelivery with the same idempotency key. The fixture promises **at-least-once delivery**, not exactly-once delivery. Its fake receiver demonstrates how idempotency turns repeated attempts into one observable effect.
 
-This is a focused executable model, not a production queue. A deployment would also need process-level SQLite connection management and busy-timeout policy, operational visibility, endpoint controls, and an explicit dead-letter decision.
+This is a test fixture, not a production queue. A deployment would also need process-level SQLite connection management, a busy-timeout policy, monitoring, endpoint controls, and a dead-letter policy.
 
-## Run the proof
+## Run the tests
 
 From the repository root:
 

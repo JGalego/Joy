@@ -21,13 +21,13 @@ Set WaitTimeout 60s
 Hide
 Type `unset CLAUDE_CODE_SSE_PORT TERM_PROGRAM TERM_PROGRAM_VERSION; export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1`
 Enter
-Type 'stty -echo; clear; claude --plugin-dir . --setting-sources project --no-chrome --effort low --disallowedTools "Bash,Edit,Write,NotebookEdit,Read,Glob,Grep,Task,WebFetch,WebSearch"; stty echo'
+Type 'stty -echo; clear; claude --plugin-dir . --setting-sources project --no-chrome --model sonnet --effort low --disallowedTools "Bash,Edit,Write,NotebookEdit,Read,Glob,Grep,Task,WebFetch,WebSearch"; stty echo'
 Enter
 Wait+Screen@60s /Sonnet 5/
 Show
 
 Sleep 3s
-Type "/joy:joy pair I'm designing slugify(text). Keep the algorithm mine; pair on Unicode edge cases; delegate one pytest example. Do not inspect or edit files. Reply in at most 12 lines: Keep, two Pair bullets, Delegate, then a three-line Python test."
+Type "/joy pair I'm designing slugify(text). Keep the algorithm mine; pair on Unicode edge cases; delegate one pytest example. Do not inspect or edit files. Reply in at most 12 lines: Keep, two Pair bullets, Delegate, then a three-line Python test."
 Sleep 500ms
 Enter
 Wait+Screen@60s /done [0-9]/

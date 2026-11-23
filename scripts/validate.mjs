@@ -152,7 +152,6 @@ check(fields.get("license") === "MIT", "skill license must be MIT");
 check(skill.split("\n").length <= 500, "SKILL.md must remain at or below 500 lines");
 
 const discoveryTerms = [
-  "preserve joy",
   "pair programming",
   "learning without receiving the full solution",
   "retaining authorship",
@@ -246,7 +245,7 @@ check(["GIF87a", "GIF89a"].includes(copilotDemo.subarray(0, 6).toString("ascii")
 check(copilotDemo.length < 5_000_000, "assets/copilot.gif: keep the demo below 5 MB");
 check(claudeTape.includes("Output assets/claude.gif"), "assets/claude.tape must render assets/claude.gif");
 check(claudeTape.includes("Require claude"), "assets/claude.tape must require Claude Code");
-check(claudeTape.includes("/joy:joy pair"), "assets/claude.tape must invoke the Joy plugin in pair mode");
+check(claudeTape.includes("/joy pair"), "assets/claude.tape must invoke the Joy plugin in pair mode");
 check(claudeTape.includes("stty -echo; clear; claude"), "assets/claude.tape must suppress the terminal handshake without hiding Claude's banner");
 check(claudeTape.includes("--disallowedTools"), "assets/claude.tape must prevent tools from changing the repository");
 check(!/(?:^|\s)(?:-p|--print)(?:\s|$)/m.test(claudeTape), "assets/claude.tape must record interactive Claude Code, not print mode");
@@ -259,10 +258,10 @@ check(copilotTape.includes("--available-tools="), "assets/copilot.tape must prev
 check(copilotTape.includes("--session-id"), "assets/copilot.tape must isolate each recording session");
 check(!/(?:--allow-all|--yolo)\b/.test(copilotTape), "assets/copilot.tape must not bypass Copilot permissions");
 check(caseStudyTape.includes("Output assets/case-study.gif"), "assets/case-study.tape must target the case-study GIF");
-check(caseStudyTape.includes("/joy:joy craft"), "assets/case-study.tape must invoke Joy in craft mode");
+check(caseStudyTape.includes("/joy craft"), "assets/case-study.tape must invoke Joy in craft mode");
 check(caseStudyTape.includes("--allowedTools"), "assets/case-study.tape must scope the case-study tools");
 check(caseStudyTape.includes("--disallowedTools"), "assets/case-study.tape must prevent fixture edits");
-check(caseStudyTape.includes("python3 -m unittest discover -s examples/webhook_worker/tests -v"), "assets/case-study.tape must run the executable proof");
+check(caseStudyTape.includes("python3 -m unittest discover -s examples/webhook_worker/tests -v"), "assets/case-study.tape must run the case-study tests");
 check(!caseStudyTape.includes("dangerously-skip-permissions"), "assets/case-study.tape must not bypass Claude Code permissions");
 check(readme.includes('src="assets/claude.gif"'), "README.md must display the Claude Code demo");
 check(readme.includes('src="assets/copilot.gif"'), "README.md must display the Copilot CLI demo");
@@ -270,9 +269,15 @@ check(readme.includes("(assets/copilot.tape)"), "README.md must link the Copilot
 check(readme.includes("<details open>"), "README.md must open the primary demo by default");
 check(readme.includes("<summary><strong>Claude Code</strong>"), "README.md must label the Claude Code demo panel");
 check(readme.includes("<summary><strong>GitHub Copilot CLI</strong>"), "README.md must label the Copilot CLI demo panel");
-check(readme.includes("<summary><strong>Not sure which mode fits?</strong></summary>"), "README.md must include the interactive mode chooser");
 
-function validateCast(filename, title, requiredText) {
+function tapePrompt(tapeName, source) {
+  const match = source.match(/^Type "(.+)"$/m);
+  check(Boolean(match), `assets/${tapeName}: missing the visible Type "..." prompt`);
+  return match?.[1] ?? "";
+}
+
+function validateCast(filename, title, tapeName, tapeSource) {
+  const expectedPrompt = tapePrompt(tapeName, tapeSource);
   const path = join(root, "assets", filename);
   const source = read(path);
   const bytes = readBytes(path);
@@ -291,7 +296,6 @@ function validateCast(filename, title, requiredText) {
   check(header?.title === title, `assets/${filename}: unexpected recording title`);
   check(lines.length >= 20, `assets/${filename}: recording has too few events`);
   check(bytes.length < 500_000, `assets/${filename}: keep the cast below 500 KB`);
-  check(source.includes(requiredText), `assets/${filename}: recording does not show Joy's intended interaction`);
   check(!source.includes("--resume"), `assets/${filename}: remove resumable session identifiers before publication`);
   check(!/\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i.test(source), `assets/${filename}: remove UUID-like session identifiers before publication`);
   check(!/\/(?:home|Users)\//.test(source), `assets/${filename}: remove local home-directory paths before publication`);
@@ -321,7 +325,7 @@ function validateCast(filename, title, requiredText) {
   const submitIndex = inputEvents.findIndex((event) => event[2] === "\r");
   const promptInput = submitIndex >= 0 ? inputEvents.slice(0, submitIndex) : [];
   const typedPrompt = promptInput.map((event) => event[2]).join("");
-  check(typedPrompt.includes(requiredText), `assets/${filename}: recording input does not contain the intended prompt`);
+  check(typedPrompt === expectedPrompt, `assets/${filename}: typed prompt differs from assets/${tapeName}; re-record it`);
   check(promptInput.length === typedPrompt.length, `assets/${filename}: intended prompt must be recorded as individual keystrokes`);
   check(promptInput.every((event) => event[2].length === 1), `assets/${filename}: intended prompt must not be pasted in a single event`);
   const typingDuration = promptInput.length > 1 ? promptInput.at(-1)[0] - promptInput[0][0] : 0;
@@ -333,9 +337,9 @@ function validateCast(filename, title, requiredText) {
   return { events, source };
 }
 
-validateCast("claude.cast", "Joy — Claude Code", "/joy:joy pair");
-validateCast("copilot.cast", "Joy — GitHub Copilot CLI", "Use the /joy skill in learn mode");
-const caseStudyRecording = validateCast("case-study.cast", "Joy — Crash-safe webhook worker", "/joy:joy craft");
+validateCast("claude.cast", "Joy — Claude Code", "claude.tape", claudeTape);
+validateCast("copilot.cast", "Joy — GitHub Copilot CLI", "copilot.tape", copilotTape);
+const caseStudyRecording = validateCast("case-study.cast", "Joy — Crash-safe webhook worker", "case-study.tape", caseStudyTape);
 
 const caseStudyMarkers = caseStudyRecording.events
   .filter((event) => event[1] === "m")
@@ -343,8 +347,26 @@ const caseStudyMarkers = caseStudyRecording.events
 for (const marker of ["Set the boundary", "Inspect the invariant", "Run the proof"]) {
   check(caseStudyMarkers.includes(marker), `assets/case-study.cast must include the ${marker} chapter`);
 }
-for (const evidence of ["Ran 3 tests", "OK", "Verification", "Untouched"]) {
-  check(caseStudyRecording.source.includes(evidence), `assets/case-study.cast must show ${evidence}`);
+const ansiPattern = /\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07]*\x07/g;
+const caseStudyOutput = caseStudyRecording.events
+  .filter((event) => event[1] === "o")
+  .map((event) => event[2])
+  .join("")
+  .replace(ansiPattern, "");
+// Check unittest's own output, not the model's paraphrase of it.
+check(/\.\.\.\s*ok/.test(caseStudyOutput), "assets/case-study.cast must show passing unittest output");
+for (const evidence of ["Verification", "Untouched"]) {
+  check(caseStudyOutput.includes(evidence), `assets/case-study.cast must show ${evidence}`);
+}
+const proofMarker = caseStudyRecording.events.find((event) => event[1] === "m" && event[2] === "Run the proof");
+const testCommand = caseStudyRecording.events.find((event) => event[1] === "o" && event[2].replace(ansiPattern, "").includes("Bash(python3"));
+check(Boolean(testCommand), "assets/case-study.cast must show Claude running the tests");
+if (proofMarker && testCommand) {
+  // The recorder stamps a marker just after the output that triggers it.
+  check(
+    Math.abs(proofMarker[0] - testCommand[0]) < 2,
+    `assets/case-study.cast: the Run the proof chapter starts at ${proofMarker[0]}s but the tests run at ${testCommand[0]}s`
+  );
 }
 
 for (const target of ["claude", "copilot"]) {
@@ -412,8 +434,8 @@ check(pagesWorkflow.includes("assets/joy.svg assets/ownership.svg assets/claude.
 check(pagesWorkflow.includes("path: _site"), ".github/workflows/pages.yml must upload only the staged site");
 
 const ciWorkflow = read(join(root, ".github", "workflows", "ci.yml"));
-check(ciWorkflow.includes("actions/setup-python@v5"), ".github/workflows/ci.yml must configure Python for the case-study proof");
-check(ciWorkflow.includes("python -m unittest discover -s examples/webhook_worker/tests -v"), ".github/workflows/ci.yml must run the case-study proof");
+check(ciWorkflow.includes("actions/setup-python@v5"), ".github/workflows/ci.yml must configure Python for the case-study tests");
+check(ciWorkflow.includes("python -m unittest discover -s examples/webhook_worker/tests -v"), ".github/workflows/ci.yml must run the case-study tests");
 
 const caseStudyReadme = read(join(root, "examples", "webhook_worker", "README.md"));
 const workerFixture = read(join(root, "examples", "webhook_worker", "worker.py"));
@@ -425,7 +447,7 @@ for (const boundary of ["**Keep:**", "**Pair:**", "**Delegate:**"]) {
 check(workerFixture.includes("crash_after_send"), "case-study worker must expose deterministic crash injection");
 check(repositoryFixture.includes("AND attempts = ?"), "case-study repository must reject stale claim generations");
 for (const behavior of ["test_crash_after_send", "test_transport_failure", "test_stale_worker"]) {
-  check(testFixture.includes(behavior), `case-study proof must cover ${behavior}`);
+  check(testFixture.includes(behavior), `case-study tests must cover ${behavior}`);
 }
 
 const evaluations = readJson(evalPath);

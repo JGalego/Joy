@@ -1,4 +1,4 @@
-"""Developer-owned delivery policy and claim model."""
+"""Delivery policy and claim model."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ class ClaimedDelivery:
 
 @dataclass(frozen=True)
 class DeliveryPolicy:
-    """The product decisions that stay on the developer's side of the boundary."""
+    """Lease duration and retry backoff settings."""
 
     lease_seconds: float = 5.0
     retry_base_seconds: float = 2.0
@@ -38,5 +38,9 @@ class DeliveryPolicy:
 
         if attempt < 1:
             raise ValueError("attempt must be positive")
-        delay = min(self.retry_base_seconds * (2 ** (attempt - 1)), self.retry_cap_seconds)
-        return now + delay
+        # Compare the integer growth with the cap ratio before multiplying: after enough
+        # attempts the growth no longer fits in a float, and retries must keep working.
+        growth = 2 ** (attempt - 1)
+        if growth >= self.retry_cap_seconds / self.retry_base_seconds:
+            return now + self.retry_cap_seconds
+        return now + self.retry_base_seconds * growth

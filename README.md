@@ -15,13 +15,7 @@
 	<p><strong>Install:</strong> <code>npx skills add JGalego/Joy --skill joy --agent claude-code --global --yes</code></p>
 </div>
 
-> “When you’re choosing what to keep, ask your heart; when you’re choosing where to store something, ask your house!”
->
-> — Marie Kondo
-
-Joy is a KonMari-inspired Agent Skill for Claude Code and GitHub Copilot CLI that helps you decide what to delegate without giving away the parts of programming you love.
-
-AI agents are good at removing friction, but they can also remove discovery, understanding, problem-solving, craftsmanship, and authorship before the user chooses to give those up. Joy adds a focused intervention:
+Joy is a KonMari-inspired Agent Skill for Claude Code and GitHub Copilot CLI. It helps you choose which parts of a programming task to keep, work through together, or delegate.
 
 > **Which part do you want to remain yours?**
 
@@ -29,9 +23,7 @@ AI agents are good at removing friction, but they can also remove discovery, und
 	<img src="assets/ownership.svg" alt="The movable boundary between work you Keep, Pair on, and Delegate" width="900">
 </p>
 
-It distinguishes meaningful challenge from incidental toil. It is not anti-AI, anti-productivity, or a claim that all difficulty is worthwhile.
-
-## 🎬 See Joy in action
+## Demos
 
 <details open>
 <summary><strong>Claude Code</strong> — <code>pair</code> mode</summary>
@@ -59,23 +51,21 @@ It distinguishes meaningful challenge from incidental toil. It is not anti-AI, a
 
 </details>
 
-### Extended case study: crash-safe webhook delivery
+### Case study: webhook delivery
 
-The [annotated case study](https://jgalego.github.io/Joy/#case-study) follows a real, read-only Claude Code review of an executable webhook worker. The developer keeps the delivery guarantee, retry policy, and claim transition; Joy pairs on the send-before-ack crash invariant and delegates inspection and verification.
+The [case study](https://jgalego.github.io/Joy/#case-study) records a read-only Claude Code review of a webhook worker. The developer keeps the delivery guarantee, retry policy, and claim transition; Joy helps examine the send-before-ack crash window and run tests.
 
-The experience includes chaptered terminal playback, the protected implementation, deterministic fault-injection tests, a decision log, and an ownership receipt. The fixture is available in [examples/webhook_worker](examples/webhook_worker) and its proof runs without third-party packages:
+The page includes chaptered playback, code excerpts, test results, and delivery trade-offs. Run the tests in [examples/webhook_worker](examples/webhook_worker) without third-party packages:
 
 ```sh
 python3 -m unittest discover -s examples/webhook_worker/tests -v
 ```
 
-**Note:** These recordings run the local plugin in interactive CLI sessions. The GIF fallbacks come from [assets/claude.tape](assets/claude.tape) and [assets/copilot.tape](assets/copilot.tape) with [VHS](https://github.com/charmbracelet/vhs). The Joy site uses [assets/claude.cast](assets/claude.cast), [assets/copilot.cast](assets/copilot.cast), and [assets/case-study.cast](assets/case-study.cast) with [asciinema-player](https://github.com/asciinema/asciinema-player), adding pause, seek, speed, fullscreen, selectable text, and case-study chapters. Wording may vary when recordings are regenerated.
-
-## 📦 Install
+## Install
 
 ### From skills.sh
 
-The canonical skill is in [skills/joy](skills/joy), the layout discovered by the skills CLI. Install it globally for Claude Code:
+Install [skills/joy](skills/joy) globally for Claude Code:
 
 ```sh
 npx skills add JGalego/Joy --skill joy --agent claude-code --global --yes
@@ -94,14 +84,14 @@ Restart Claude Code if the personal skills directory did not already exist. Invo
 
 ### As a Claude Code plugin
 
-The repository is also a valid single-plugin marketplace:
+Add the marketplace and install the plugin:
 
 ```text
 /plugin marketplace add JGalego/Joy
 /plugin install joy@joy
 ```
 
-Marketplace plugins have a guaranteed namespaced invocation:
+Invoke the installed plugin with:
 
 ```text
 /joy:joy pair
@@ -115,34 +105,22 @@ For local development, load the checkout directly:
 claude --plugin-dir .
 ```
 
-## 🎛️ Use
+## Use
 
 Joy can activate from requests about preserving authorship, learning without receiving the answer, pair programming, avoiding comprehension debt, deciding what to delegate, or tidying a repository.
 
 ### Modes
 
-Explicit personal-skill invocations use `/joy <mode>`:
+Personal skills use `/joy <mode>`:
 
-<details>
-<summary><strong>Not sure which mode fits?</strong></summary>
-
-- 📚 **I want to understand it** → `/joy learn`
-- 🤝 **I want to work through it together** → `/joy pair`
-- 🛠️ **I want to author the important code** → `/joy craft`
-- 🚀 **I want it completed safely** → `/joy ship`
-- 🧹 **I want to decide what stays** → `/joy tidy`
-- ⏸️ **I want Joy to step back** → `/joy off`
-
-</details>
-
-| Mode | Protects or optimizes |
+| Mode | Behavior |
 | --- | --- |
-| 🤝 `pair` | Small collaborative steps; the default |
-| 📚 `learn` | Understanding, hypotheses, and graduated hints |
-| 🛠️ `craft` | Architecture and hands-on implementation authored by the user |
-| 🚀 `ship` | Safe autonomous completion with a concise explanation |
-| 🧹 `tidy` | Evidence-based **Keep**, **Refine**, and **Let go** review |
-| ⏸️ `off` | Normal assistant behavior without Joy-specific rules |
+| `pair` | Work through the task together in small steps; the default |
+| `learn` | Use hints and experiments without revealing the solution |
+| `craft` | Keep architecture and core implementation with the user |
+| `ship` | Delegate implementation and validation |
+| `tidy` | Review what to **Keep**, **Refine**, or **Let go** |
+| `off` | Return to normal assistant behavior |
 
 Examples:
 
@@ -164,7 +142,7 @@ Review this repository and propose cleanup before deleting anything.
 
 A selected mode remains active in the current conversation until changed. “Just do it” switches the current task to `ship`. Explicit instructions always override inferred preferences.
 
-## 🧭 The ownership boundary
+## The ownership boundary
 
 - **Keep** — the user owns the work.
 - **Pair** — the user and AI work through it together.
@@ -174,64 +152,61 @@ The boundary can change at any time. Joy asks at most one ownership question at 
 
 Tidying uses a different decision: **Keep**, **Refine**, or **Let go**. Destructive tidying is proposed before it is applied unless autonomous cleanup was explicitly requested.
 
-## ⚠️ Limitations
+## Limitations
 
 - Joy is prompt-guided behavior, not a deterministic policy engine. Review important output and generated code.
 - It cannot know what a user enjoys; it can only preserve boundaries the user states or confirms.
 - Mode and boundary state live in the current conversation, not across new sessions.
-- The evaluations describe observable outcomes for human or model review. Structural validation does not prove semantic compliance.
 - Plugin invocations are namespaced when the bare `joy` alias conflicts.
 
-## 🧪 Development and evaluation
+## Development
 
 The skill has no runtime dependencies or build step.
 
-The optional [justfile](justfile) wraps the common development tasks:
+The [justfile](justfile) lists the available development tasks:
 
 ```sh
-just           # list recipes
-just validate  # dependency-free structural checks
-just check     # complete local publication suite
-just demo      # re-record the Claude Code GIF
-just demo-copilot # re-record the Copilot CLI GIF
-just cast      # re-record the interactive terminal casts
-just cast-case-study # re-record the extended case study
-just case-study # run the executable case-study proof
-just site      # preview the Joy site locally
-just run       # launch the local plugin
+just               # list recipes
+just check         # structural checks, plugin validation, skill discovery, and tests
+just site          # preview at http://localhost:4173/
+just run           # launch the local plugin
 ```
 
-Run the dependency-free structural validator:
+Run the dependency-free structural checks directly:
 
 ```sh
 node scripts/validate.mjs
 ```
 
-Re-recording the GIFs requires VHS and an authenticated installation of the corresponding CLI:
-
-```sh
-vhs assets/claude.tape
-vhs assets/copilot.tape
-```
-
-Each tape opens an interactive session and writes [assets/claude.gif](assets/claude.gif) or [assets/copilot.gif](assets/copilot.gif). Re-recording uses model quota and may produce different wording.
-
-The interactive casts use the standard-library PTY recorder in [scripts/record_cast.py](scripts/record_cast.py), which types each prompt with visible keystroke pacing. Re-recording requires Python 3.9 or newer and an authenticated installation of the corresponding CLI. Run `just cast-claude`, `just cast-copilot`, or `just cast-case-study` for a specific recording, or `just cast` for the complete set. Run `just site`, then open <http://localhost:4173/> to test the same landing page deployed by [the Pages workflow](.github/workflows/pages.yml).
-
-When Claude Code is installed, also run its official validators:
+The full `just check` suite also requires Claude Code and `npx`. To run Claude Code's validators separately:
 
 ```sh
 claude plugin validate . --strict
 claude plugin validate ./skills --strict
 ```
 
-Load the plugin locally with `claude --plugin-dir .`, then exercise the prompts in [skills/joy/evals/evals.json](skills/joy/evals/evals.json). Each fixture states intended outcomes and assertions rather than requiring exact wording. For meaningful comparison, run each case in a fresh session with Joy and without Joy, then record concrete evidence for every assertion. No paid API, credential, or fabricated benchmark is required by this repository.
-
-CI runs the same structural validator and the executable case-study proof. It checks frontmatter, names, manifests, mode and command consistency, evaluation coverage, internal links, and common publication mistakes.
+CI runs the structural validator and the webhook-worker tests.
 
 Before publishing changes to the skill or plugin metadata, bump the semantic version in [.claude-plugin/plugin.json](.claude-plugin/plugin.json); Claude Code uses that explicit version to decide whether an installed plugin should update.
 
-## ⚖️ Independence and trademarks
+### Recordings
+
+The GIFs use [VHS](https://github.com/charmbracelet/vhs) with [assets/claude.tape](assets/claude.tape) and [assets/copilot.tape](assets/copilot.tape). The interactive casts use [scripts/record_cast.py](scripts/record_cast.py), which requires Python 3.9 or newer. Both record authenticated CLI sessions; re-recording consumes model quota and may change the wording.
+
+```sh
+just demo-claude     # Claude Code GIF
+just demo-copilot    # Copilot CLI GIF
+just cast           # all interactive recordings
+just cast-case-study # webhook review only
+```
+
+The site plays the casts with [asciinema-player](https://github.com/asciinema/asciinema-player), with pause, seek, speed controls, and selectable text. Preview it with `just site`; [the Pages workflow](.github/workflows/pages.yml) publishes the same files.
+
+### Behavioral evaluation
+
+Load the plugin with `claude --plugin-dir .` and try the prompts in [skills/joy/evals/evals.json](skills/joy/evals/evals.json). Each case defines outcomes and assertions, not exact wording. Run each in fresh sessions with and without Joy, and record evidence for each assertion. Structural checks validate the fixtures, not the agent's behavior.
+
+## Independence and trademarks
 
 Joy is an independent open-source project. It is not affiliated with or endorsed by Marie Kondo or KonMari Media, Inc. “KonMari” is used only to describe the project's inspiration; no official logos, visual identity, or persona are used.
 
