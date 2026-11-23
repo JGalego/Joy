@@ -63,21 +63,26 @@
           <img src="assets/joy.svg" alt="" width="62" height="62">
         </div>
         <blockquote>Which part do you want to remain yours?</blockquote>
-        <div class="boundary-list">
-          <div>
+        <fieldset class="boundary-list">
+          <legend class="visually-hidden">Choose what should remain yours</legend>
+          <label class="boundary-option option-keep">
+            <input class="visually-hidden" type="radio" name="boundary" value="keep">
             <span class="boundary-mark mark-keep" aria-hidden="true">◆</span>
-            <p><strong>Keep</strong><span>Your judgment, craft, and discovery</span></p>
-          </div>
-          <div>
+            <span class="boundary-copy"><strong>Keep</strong><span>Your judgment, craft, and discovery</span></span>
+          </label>
+          <label class="boundary-option option-pair">
+            <input class="visually-hidden" type="radio" name="boundary" value="pair">
             <span class="boundary-mark mark-pair" aria-hidden="true">◇</span>
-            <p><strong>Pair</strong><span>Shared reasoning in small steps</span></p>
-          </div>
-          <div>
+            <span class="boundary-copy"><strong>Pair</strong><span>Shared reasoning in small steps</span></span>
+          </label>
+          <label class="boundary-option option-delegate">
+            <input class="visually-hidden" type="radio" name="boundary" value="delegate">
             <span class="boundary-mark mark-delegate" aria-hidden="true">↗</span>
-            <p><strong>Delegate</strong><span>Execution you choose to hand off</span></p>
-          </div>
-        </div>
-        <p class="boundary-note"><span aria-hidden="true">↔</span> The boundary can move at any time.</p>
+            <span class="boundary-copy"><strong>Delegate</strong><span>Execution you choose to hand off</span></span>
+          </label>
+        </fieldset>
+        <div class="boundary-track" aria-hidden="true"><i></i></div>
+        <p class="boundary-note" role="status"><span aria-hidden="true">↔</span> <span id="boundary-response">The boundary can move at any time.</span></p>
       </aside>
     </section>
 

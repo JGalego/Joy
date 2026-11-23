@@ -258,5 +258,25 @@ copyButton.addEventListener("click", async () => {
   }
 });
 
+const questionCard = document.querySelector(".question-card");
+const boundaryInputs = [...document.querySelectorAll("input[name='boundary']")];
+const boundaryResponse = document.querySelector("#boundary-response");
+const boundaryCopy = {
+  keep: { label: "Keep", text: "It stays yours. Joy won't solve, design, or edit it unless you move the boundary." },
+  pair: { label: "Pair", text: "Joy works through it with you in small steps and discusses key choices first." },
+  delegate: { label: "Delegate", text: "Joy executes it on its own, then explains the decisions that matter." }
+};
+let chosenBoundary;
+
+for (const input of boundaryInputs) {
+  input.addEventListener("change", () => {
+    const next = boundaryCopy[input.value];
+    const moved = chosenBoundary && chosenBoundary !== input.value;
+    boundaryResponse.textContent = `${moved ? `Moved from ${boundaryCopy[chosenBoundary].label} to ${next.label}. ` : ""}${next.text}`;
+    questionCard.dataset.choice = input.value;
+    chosenBoundary = input.value;
+  });
+}
+
 renderPlayer();
 renderCasePlayer();
